@@ -1,0 +1,20 @@
+{
+    "name": "thoracle",
+    "version": "1.0.0",
+    "description": "The Playing With Power patreon Discord server's bot.",
+    "author": "Rigidity",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node .",
+        "dev": "ts-node src/index.ts"
+    },
+    "devDependencies": {
+        "ts-node": "^10.9.1",
+        "typescript": "^5.0.4"
+    },
+    "dependencies": {
+        "discord.js": "^14.11.0",
+        "dotenv": "^16.0.3"
+    }
+}
