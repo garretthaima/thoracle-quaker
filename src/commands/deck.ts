@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Deck, Profile } from '../database';
+import { Deck, IDeck, Profile } from '../database';
 import { Command } from '../types/Command';
 
 export = <Command>{
@@ -44,7 +44,7 @@ async function handleUse(
     name: string,
     deckList: string
 ) {
-    const existingDecks = await Deck.count({ player: interaction.user.id });
+    const existingDecks = await Deck.count({ userId: interaction.user.id });
 
     if (existingDecks >= 50) {
         return await interaction.reply({
@@ -53,12 +53,12 @@ async function handleUse(
         });
     }
 
-    const deck = await Deck.findOneAndUpdate(
+    const deck: IDeck = await Deck.findOneAndUpdate(
         {
-            player: interaction.user.id,
+            userId: interaction.user.id,
             $or: [{ name }, { deckList }],
         },
-        { $set: { player: interaction.user.id, name, deckList } },
+        { $set: { userId: interaction.user.id, name, deckList } },
         { new: true, upsert: true }
     );
 

@@ -4,7 +4,17 @@ import {
     SlashCommandBuilder,
     userMention,
 } from 'discord.js';
-import { Config, Deck, Match, Profile, Season } from '../database';
+import {
+    Config,
+    Deck,
+    IDeck,
+    IMatch,
+    IProfile,
+    ISeason,
+    Match,
+    Profile,
+    Season,
+} from '../database';
 import { Command } from '../types/Command';
 
 export = <Command>{
@@ -13,7 +23,7 @@ export = <Command>{
         .setDescription('Displays your profile information.'),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        const profile = await Profile.findOneAndUpdate(
+        const profile: IProfile = await Profile.findOneAndUpdate(
             { _id: interaction.user.id },
             { _id: interaction.user.id },
             { new: true, upsert: true }
@@ -30,7 +40,7 @@ export = <Command>{
             .setColor('Blue');
 
         // Current deck
-        const deck = profile.currentDeck
+        const deck: IDeck | null = profile.currentDeck
             ? await Deck.findOne({ _id: profile.currentDeck })
             : null;
 
@@ -41,12 +51,13 @@ export = <Command>{
         embed.addFields({ name: 'Current Deck', value: deckText });
 
         // Match statistics
-        const matches = await Match.find({
-            'players.player': interaction.user.id,
+        const matches: IMatch[] = await Match.find({
+            'players.userId': interaction.user.id,
+            $not: { 'players.confirmed': false },
         });
 
         const wins = matches.filter(
-            (match) => match.winner === interaction.user.id
+            (match) => match.winnerUserId === interaction.user.id
         ).length;
 
         const losses = matches.length - wins;
@@ -68,7 +79,9 @@ export = <Command>{
         )}% winrate`;
 
         // Season statistics
-        const season = await Season.findOne({ endDate: { $exists: false } });
+        const season: ISeason | null = await Season.findOne({
+            endDate: { $exists: false },
+        });
 
         if (season) {
             const seasonMatches = matches.filter((match) =>
@@ -76,7 +89,7 @@ export = <Command>{
             );
 
             const seasonWins = seasonMatches.filter(
-                (match) => match.winner === interaction.user.id
+                (match) => match.winnerUserId === interaction.user.id
             ).length;
 
             const seasonLosses = seasonMatches.length - seasonWins;
@@ -97,7 +110,7 @@ export = <Command>{
             const points =
                 wins * config.pointsGained - losses * config.pointsLost;
 
-            const pointsText = `You have ${points} points.`;
+            const pointsText = `You have ${config.basePoints + points} points.`;
 
             embed.addFields({ name: 'Points', value: pointsText });
         }

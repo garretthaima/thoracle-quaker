@@ -3,7 +3,7 @@ import {
     PermissionsBitField,
     SlashCommandBuilder,
 } from 'discord.js';
-import { Config } from '../database';
+import { Config, IConfig } from '../database';
 import { Command } from '../types/Command';
 
 export = <Command>{
@@ -40,6 +40,16 @@ export = <Command>{
                         .setDescription('The number of points lost.')
                 )
         )
+        .addSubcommand((command) =>
+            command
+                .setName('base-points')
+                .setDescription('Points added to values when displayed.')
+                .addIntegerOption((option) =>
+                    option
+                        .setName('amount')
+                        .setDescription('The number of points added.')
+                )
+        )
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     async execute(interaction: ChatInputCommandInteraction) {
@@ -64,6 +74,13 @@ export = <Command>{
                     interaction.options.getInteger('amount')
                 );
                 break;
+
+            case 'base-points':
+                await handleBasePoints(
+                    interaction,
+                    interaction.options.getInteger('amount')
+                );
+                break;
         }
     },
 };
@@ -79,7 +96,7 @@ async function handleMinimumGames(
         });
     }
 
-    const config = await Config.findOneAndUpdate(
+    const config: IConfig = await Config.findOneAndUpdate(
         {},
         { $set: { minimumGamesPerPlayer: amount ?? undefined } },
         { new: true, upsert: true }
@@ -104,7 +121,7 @@ async function handlePointsGained(
         });
     }
 
-    const config = await Config.findOneAndUpdate(
+    const config: IConfig = await Config.findOneAndUpdate(
         {},
         { $set: { pointsGained: amount ?? undefined } },
         { new: true, upsert: true }
@@ -129,7 +146,7 @@ async function handlePointsLost(
         });
     }
 
-    const config = await Config.findOneAndUpdate(
+    const config: IConfig = await Config.findOneAndUpdate(
         {},
         { $set: { pointsLost: amount ?? undefined } },
         { new: true, upsert: true }
@@ -139,6 +156,31 @@ async function handlePointsLost(
         content: `The points lost per match loss is ${
             amount === null ? 'currently' : 'now'
         } ${config.pointsLost}`,
+        ephemeral: true,
+    });
+}
+
+async function handleBasePoints(
+    interaction: ChatInputCommandInteraction,
+    amount: number | null
+) {
+    if (!interaction.memberPermissions?.has('ManageGuild')) {
+        return await interaction.reply({
+            content: 'You do not have permission to do this.',
+            ephemeral: true,
+        });
+    }
+
+    const config: IConfig = await Config.findOneAndUpdate(
+        {},
+        { $set: { basePoints: amount ?? undefined } },
+        { new: true, upsert: true }
+    );
+
+    await interaction.reply({
+        content: `The points added to values when displayed is ${
+            amount === null ? 'currently' : 'now'
+        } ${config.basePoints}`,
         ephemeral: true,
     });
 }

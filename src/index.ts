@@ -1,8 +1,11 @@
 import { REST, Routes } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
+import sourceMaps from 'source-map-support';
 import { CLIENT_ID, GUILD_ID, TOKEN } from './env';
 import { CommandClient } from './types/CommandClient';
+
+sourceMaps.install();
 
 // Initialize Discord API client
 export const client = new CommandClient({ intents: [] });

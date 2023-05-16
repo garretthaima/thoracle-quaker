@@ -10,6 +10,7 @@
         "noImplicitThis": true,
         "noImplicitOverride": true,
         "noFallthroughCasesInSwitch": true,
+        "inlineSourceMap": true,
         "strict": true
     },
     "include": ["src"]
