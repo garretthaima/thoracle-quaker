@@ -1,20 +1,8 @@
 import { REST, Routes } from 'discord.js';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { CLIENT_ID, GUILD_ID, TOKEN } from './env';
 import { CommandClient } from './types/CommandClient';
-
-// Read environment variables
-dotenv.config();
-
-const TOKEN = process.env.TOKEN!;
-if (!TOKEN) throw new Error('Missing `TOKEN` environment variable.');
-
-const CLIENT_ID = process.env.CLIENT_ID!;
-if (!CLIENT_ID) throw new Error('Missing `CLIENT_ID` environment variable.');
-
-const GUILD_ID = process.env.GUILD_ID!;
-if (!GUILD_ID) throw new Error('Missing `GUILD_ID` environment variable.');
 
 // Initialize Discord API client
 export const client = new CommandClient({ intents: [] });
@@ -34,6 +22,13 @@ for (const file of commandFiles) {
 
 // Register the slash commands
 const rest = new REST({ version: '10' }).setToken(TOKEN);
+
 rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
     body: [...client.commands.values()].map((command) => command.data.toJSON()),
 });
+
+// Register events
+require('./events');
+
+// Login to the bot account
+client.login(TOKEN);
