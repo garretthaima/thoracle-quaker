@@ -23,19 +23,21 @@ export = <Command>{
         .setDescription('Displays your profile information.'),
 
     async execute(interaction: ChatInputCommandInteraction) {
+        // User profile
         const profile: IProfile = await Profile.findOneAndUpdate(
             { _id: interaction.user.id },
             { _id: interaction.user.id },
             { new: true, upsert: true }
         );
 
+        // Create embed
         const embed = new EmbedBuilder()
-            .setTitle(`Profile Information`)
+            .setTitle('Profile Information')
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(
                 `This is the statistics for ${userMention(
                     interaction.user.id
-                )}, both total and this season.`
+                )}, both overall and for this season.`
             )
             .setColor('Blue');
 
