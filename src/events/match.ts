@@ -33,10 +33,20 @@ export async function handleConfirmMatch(
 
     await match.save();
 
-    await button.reply({
-        content: 'You have confirmed the match.',
-        ephemeral: true,
-    });
+    const confirmedPlayers = match.players.filter((player) => player.confirmed);
+
+    if (confirmedPlayers.length === match.players.length) {
+        await button.reply({
+            content: `${match.players
+                .map((player) => userMention(player.userId))
+                .join(', ')},\nThe match has been confirmed.`,
+        });
+    } else {
+        await button.reply({
+            content: 'You have confirmed the match.',
+            ephemeral: true,
+        });
+    }
 
     const channel = client.channels.cache.get(match.channelId);
 
@@ -49,21 +59,17 @@ export async function handleConfirmMatch(
         const embed = message.embeds[0];
         const field = embed.fields[embed.fields.length - 1];
 
-        const confirmedPlayers = match.players.filter(
-            (player) => player.confirmed
-        );
+        field.value = `The following players have confirmed the match: ${confirmedPlayers
+            .map((player) => userMention(player.userId))
+            .join(', ')}.`;
 
-        if (confirmedPlayers.length === match.players.length) {
-            await message.delete();
-        } else {
-            field.value = confirmedPlayers
-                .map((player) => userMention(player.userId))
-                .join(', ');
-
-            await message.edit({
-                embeds: [embed],
-            });
-        }
+        await message.edit({
+            embeds: [embed],
+            components:
+                confirmedPlayers.length === match.players.length
+                    ? []
+                    : undefined,
+        });
     }
 }
 
@@ -100,7 +106,12 @@ export async function handleDisputeMatch(
             message = await channel.messages.fetch(match.messageId);
         } catch {}
 
-        if (!message) return;
+        if (!message) {
+            return await button.reply({
+                content: 'The message could not be found.',
+                ephemeral: true,
+            });
+        }
 
         const thread = await message.startThread({ name: 'Match Dispute' });
 
@@ -141,4 +152,9 @@ export async function handleCancelMatch(
         const disputeChannel = client.channels.cache.get(match.disputeThreadId);
         await disputeChannel?.delete();
     }
+
+    await button.reply({
+        content: 'The match has been cancelled.',
+        ephemeral: true,
+    });
 }
