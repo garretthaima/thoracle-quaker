@@ -1,4 +1,4 @@
-import { REST, Routes } from 'discord.js';
+import { IntentsBitField, REST, Routes } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import sourceMaps from 'source-map-support';
@@ -8,7 +8,9 @@ import { CommandClient } from './types/CommandClient';
 sourceMaps.install();
 
 // Initialize Discord API client
-export const client = new CommandClient({ intents: [] });
+export const client = new CommandClient({
+    intents: [IntentsBitField.Flags.Guilds],
+});
 
 // Load the command files
 const commandsPath = path.join(__dirname, 'commands');

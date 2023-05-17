@@ -33,17 +33,17 @@ export async function handleConfirmMatch(
 
     await match.save();
 
-    await button.reply('You have confirmed the match.');
+    await button.reply({
+        content: 'You have confirmed the match.',
+        ephemeral: true,
+    });
 
     const channel = client.channels.cache.get(match.channelId);
 
     if (channel?.isTextBased()) {
-        let message: Message | null = null;
-
-        try {
-            message = await channel.messages.fetch(match.messageId);
-        } catch {}
-
+        const message = await channel.messages
+            .fetch(match.messageId)
+            .catch(() => null);
         if (!message) return;
 
         const embed = message.embeds[0];
@@ -87,6 +87,7 @@ export async function handleDisputeMatch(
             content: `This match has already been disputed in ${channelMention(
                 match.disputeThreadId
             )}.`,
+            ephemeral: true,
         });
     }
 
@@ -116,6 +117,11 @@ export async function handleDisputeMatch(
                 button.user.id
             )} please explain your reasoning for disputing this match, so that it can be resolved.`
         );
+
+        await button.reply({
+            content: 'The match dispute thread has been created.',
+            ephemeral: true,
+        });
     }
 }
 
@@ -131,5 +137,8 @@ export async function handleCancelMatch(
         if (channel?.isTextBased()) {
             channel.messages.delete(match.messageId).catch(() => {});
         }
+
+        const disputeChannel = client.channels.cache.get(match.disputeThreadId);
+        await disputeChannel?.delete();
     }
 }

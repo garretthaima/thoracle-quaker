@@ -105,7 +105,7 @@ async function handleMinimumGames(
     await interaction.reply({
         content: `The minimum games per player is ${
             amount === null ? 'currently' : 'now'
-        } ${config.minimumGamesPerPlayer}`,
+        } ${config.minimumGamesPerPlayer}.`,
         ephemeral: true,
     });
 }
@@ -130,7 +130,7 @@ async function handlePointsGained(
     await interaction.reply({
         content: `The points gained per match win is ${
             amount === null ? 'currently' : 'now'
-        } ${config.pointsGained}`,
+        } ${config.pointsGained}.`,
         ephemeral: true,
     });
 }
@@ -155,7 +155,7 @@ async function handlePointsLost(
     await interaction.reply({
         content: `The points lost per match loss is ${
             amount === null ? 'currently' : 'now'
-        } ${config.pointsLost}`,
+        } ${config.pointsLost}.`,
         ephemeral: true,
     });
 }
@@ -180,7 +180,7 @@ async function handleBasePoints(
     await interaction.reply({
         content: `The points added to values when displayed is ${
             amount === null ? 'currently' : 'now'
-        } ${config.basePoints}`,
+        } ${config.basePoints}.`,
         ephemeral: true,
     });
 }

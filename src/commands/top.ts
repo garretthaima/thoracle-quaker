@@ -34,7 +34,7 @@ export = <Command>{
 
         const matches: IMatch[] = await Match.find({
             season: season._id,
-            $not: { 'players.confirmed': false },
+            $nor: [{ 'players.confirmed': false }],
         });
 
         const config: IConfig = await Config.findOneAndUpdate(
@@ -50,6 +50,15 @@ export = <Command>{
 
         for (const match of matches) {
             for (const { userId } of match.players) {
+                if (!(userId in playerStandings)) {
+                    playerStandings[userId] = {
+                        matches: 0,
+                        wins: 0,
+                        losses: 0,
+                        points: 0,
+                    };
+                }
+
                 const standing = playerStandings[userId];
 
                 standing.matches++;
@@ -91,7 +100,9 @@ export = <Command>{
             const gamesText = firstPageEntries
                 .map(
                     ([_, standing]) =>
-                        `${standing.matches} (${Math.floor(
+                        `${standing.matches} game${
+                            standing.matches === 1 ? '' : 's'
+                        } (${Math.floor(
                             (standing.wins / (standing.matches || 1)) * 100
                         )}% winrate)`
                 )

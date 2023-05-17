@@ -127,15 +127,18 @@ export = <Command>{
 
         actionRow.addComponents(confirmButton, disputeButton, cancelButton);
 
-        const reply = await interaction.reply({
+        await interaction.reply({
+            content: playerIds.map((userId) => userMention(userId)).join(', '),
             embeds: [embed],
             components: [actionRow],
         });
 
+        const message = await interaction.fetchReply();
+
         await Match.create({
             season: season._id,
             channelId: interaction.channelId,
-            messageId: reply.id,
+            messageId: message.id,
             winnerUserId: interaction.user.id,
             players: profiles.map((profile) => ({
                 userId: profile._id,

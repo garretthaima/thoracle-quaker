@@ -53,7 +53,7 @@ export = <Command>{
         // Match statistics
         const matches: IMatch[] = await Match.find({
             'players.userId': interaction.user.id,
-            $not: { 'players.confirmed': false },
+            $nor: [{ 'players.confirmed': false }],
         });
 
         const wins = matches.filter(
