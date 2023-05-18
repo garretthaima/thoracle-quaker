@@ -1,4 +1,5 @@
 import { Client, ClientOptions, Collection } from 'discord.js';
+import { handleError } from '../utils/interaction';
 import { Command } from './Command';
 
 export class CommandClient extends Client {
@@ -14,32 +15,10 @@ export class CommandClient extends Client {
 
             const command = this.commands.get(interaction.commandName);
 
-            if (!command) return;
-
             try {
-                await command.execute(interaction);
+                await command?.execute(interaction);
             } catch (error) {
-                console.error(error);
-
-                if (interaction.replied || interaction.deferred) {
-                    await interaction
-                        .followUp({
-                            content:
-                                'An error occurred while executing this command: ' +
-                                error,
-                            ephemeral: true,
-                        })
-                        .catch(() => {});
-                } else {
-                    await interaction
-                        .reply({
-                            content:
-                                'An error occurred while executing this command: ' +
-                                error,
-                            ephemeral: true,
-                        })
-                        .catch(() => {});
-                }
+                handleError(error, interaction);
             }
         });
     }

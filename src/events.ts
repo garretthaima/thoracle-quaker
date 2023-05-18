@@ -6,6 +6,7 @@ import {
     handleDisputeMatch,
 } from './events/match';
 import { client } from './index';
+import { handleError } from './utils/interaction';
 
 client.once('ready', () => {
     console.log(`${client.user!.tag} is now online.`);
@@ -13,33 +14,9 @@ client.once('ready', () => {
 
 client.on('interactionCreate', async (interaction) => {
     try {
-        if (interaction.isButton()) {
-            await handleButton(interaction);
-        }
+        if (interaction.isButton()) await handleButton(interaction);
     } catch (error) {
-        console.error(error);
-
-        if (interaction.isRepliable()) {
-            if (interaction.replied || interaction.deferred) {
-                await interaction
-                    .followUp({
-                        content:
-                            'An error occurred while executing this command: ' +
-                            error,
-                        ephemeral: true,
-                    })
-                    .catch(() => {});
-            } else {
-                await interaction
-                    .reply({
-                        content:
-                            'An error occurred while executing this command: ' +
-                            error,
-                        ephemeral: true,
-                    })
-                    .catch(() => {});
-            }
-        }
+        handleError(error, interaction);
     }
 });
 
