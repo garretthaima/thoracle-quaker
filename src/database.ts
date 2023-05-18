@@ -36,22 +36,26 @@ export interface IDeck extends Document {
     userId: string;
     name: string;
     deckList: string;
+    createdAt: Date;
 }
 
 const deckSchema = new Schema({
     userId: { type: String, required: true },
     name: { type: String, required: true },
     deckList: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
 });
 
 // Profile
 export interface IProfile extends Document {
     currentDeck?: Types.ObjectId;
+    createdAt: Date;
 }
 
 const profileSchema = new Schema({
     _id: String,
     currentDeck: { type: Schema.Types.ObjectId, ref: 'Deck' },
+    createdAt: { type: Date, default: Date.now },
 });
 
 // Match
@@ -62,6 +66,8 @@ export interface IMatch extends Document {
     disputeThreadId: string;
     winnerUserId: string;
     players: IMatchPlayer[];
+    createdAt: Date;
+    confirmedAt?: Date;
 }
 
 export interface IMatchPlayer {
@@ -83,6 +89,8 @@ const matchSchema = new Schema({
             confirmed: { type: Boolean, default: false },
         },
     ],
+    createdAt: { type: Date, default: Date.now },
+    confirmedAt: Date,
 });
 
 // Models

@@ -1,7 +1,6 @@
 import {
     ChatInputCommandInteraction,
     EmbedBuilder,
-    PermissionsBitField,
     SlashCommandBuilder,
 } from 'discord.js';
 import { IMatch, Match } from '../database';
@@ -42,7 +41,19 @@ export = <Command>{
                         .setRequired(true)
                 )
         )
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
+        .addSubcommand((command) =>
+            command
+                .setName('list')
+                .setDescription('Displays your matches.')
+                .addStringOption((option) =>
+                    option.setName('deck').setDescription('The deck you used.')
+                )
+                .addStringOption((option) =>
+                    option
+                        .setName('season')
+                        .setDescription('The season you played in.')
+                )
+        ),
 
     async execute(interaction: ChatInputCommandInteraction) {
         switch (interaction.options.getSubcommand()) {
@@ -67,11 +78,25 @@ export = <Command>{
                     interaction.options.getString('match', true)
                 );
                 break;
+
+            case 'list':
+                await handleList(
+                    interaction,
+                    interaction.options.getString('deck') ?? null,
+                    interaction.options.getString('season') ?? null
+                );
         }
     },
 };
 
 async function handlePending(interaction: ChatInputCommandInteraction) {
+    if (!interaction.memberPermissions?.has('ManageGuild')) {
+        return await interaction.reply({
+            content: 'You do not have permission to do this.',
+            ephemeral: true,
+        });
+    }
+
     const matches: IMatch[] = await Match.find({ 'players.confirmed': false });
 
     if (!matches.length) {
@@ -96,6 +121,13 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
 }
 
 async function handleDisputed(interaction: ChatInputCommandInteraction) {
+    if (!interaction.memberPermissions?.has('ManageGuild')) {
+        return await interaction.reply({
+            content: 'You do not have permission to do this.',
+            ephemeral: true,
+        });
+    }
+
     const matches: IMatch[] = await Match.find({
         'players.confirmed': false,
         disputeThreadId: { $exists: true },
@@ -128,6 +160,13 @@ async function handleAccept(
     interaction: ChatInputCommandInteraction,
     id: string
 ) {
+    if (!interaction.memberPermissions?.has('ManageGuild')) {
+        return await interaction.reply({
+            content: 'You do not have permission to do this.',
+            ephemeral: true,
+        });
+    }
+
     const match: IMatch | null = await Match.findById(id);
 
     if (!match) {
@@ -152,6 +191,8 @@ async function handleAccept(
         });
     }
 
+    match.confirmedAt = new Date();
+
     await match.save();
 
     await interaction.reply({
@@ -164,6 +205,13 @@ async function handleDelete(
     interaction: ChatInputCommandInteraction,
     id: string
 ) {
+    if (!interaction.memberPermissions?.has('ManageGuild')) {
+        return await interaction.reply({
+            content: 'You do not have permission to do this.',
+            ephemeral: true,
+        });
+    }
+
     const match: IMatch | null = await Match.findById(id);
 
     if (!match) {
@@ -177,6 +225,17 @@ async function handleDelete(
 
     await interaction.reply({
         content: 'That match has been deleted.',
+        ephemeral: true,
+    });
+}
+
+async function handleList(
+    interaction: ChatInputCommandInteraction,
+    deck: string | null,
+    season: string | null
+) {
+    await interaction.reply({
+        content: 'Test',
         ephemeral: true,
     });
 }

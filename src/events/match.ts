@@ -1,9 +1,4 @@
-import {
-    ButtonInteraction,
-    Message,
-    channelMention,
-    userMention,
-} from 'discord.js';
+import { ButtonInteraction, channelMention, userMention } from 'discord.js';
 import { client } from '..';
 import { IMatch } from '../database';
 
@@ -30,6 +25,8 @@ export async function handleConfirmMatch(
     }
 
     matchPlayer.confirmed = true;
+
+    match.confirmedAt = new Date();
 
     await match.save();
 
@@ -100,11 +97,9 @@ export async function handleDisputeMatch(
     const channel = client.channels.cache.get(match.channelId);
 
     if (channel?.isTextBased()) {
-        let message: Message | null = null;
-
-        try {
-            message = await channel.messages.fetch(match.messageId);
-        } catch {}
+        const message = await channel.messages
+            .fetch(match.messageId)
+            .catch(() => null);
 
         if (!message) {
             return await button.reply({
@@ -120,7 +115,7 @@ export async function handleDisputeMatch(
         await match.save();
 
         for (const player of match.players) {
-            await thread.members.add(player.userId).catch(() => {});
+            await thread.members.add(player.userId).catch(() => null);
         }
 
         await thread.send(
@@ -146,7 +141,7 @@ export async function handleCancelMatch(
         const channel = client.channels.cache.get(match.channelId);
 
         if (channel?.isTextBased()) {
-            channel.messages.delete(match.messageId).catch(() => {});
+            channel.messages.delete(match.messageId).catch(() => null);
         }
 
         const disputeChannel = client.channels.cache.get(match.disputeThreadId);
