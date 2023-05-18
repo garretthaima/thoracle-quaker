@@ -3,7 +3,8 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js';
-import { Config, IConfig, Season } from '../database';
+import { Config, IConfig } from '../database/Config';
+import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 import { leaderboardFields } from '../utils/leaderboard';
 
@@ -18,7 +19,7 @@ export = <Command>{
     async execute(interaction: ChatInputCommandInteraction) {
         const name = interaction.options.getString('season');
 
-        const season = await Season.findOne(
+        const season: ISeason | null = await Season.findOne(
             name === null ? { endDate: { $exists: false } } : { name }
         );
 

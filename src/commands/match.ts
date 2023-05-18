@@ -3,7 +3,9 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js';
-import { Deck, IDeck, IMatch, ISeason, Match, Season } from '../database';
+import { Deck, IDeck } from '../database/Deck';
+import { IMatch, Match } from '../database/Match';
+import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 import { matchListFields } from '../utils/match';
 

@@ -4,17 +4,11 @@ import {
     SlashCommandBuilder,
     userMention,
 } from 'discord.js';
-import {
-    Config,
-    Deck,
-    IDeck,
-    IMatch,
-    IProfile,
-    ISeason,
-    Match,
-    Profile,
-    Season,
-} from '../database';
+import { Config, IConfig } from '../database/Config';
+import { Deck, IDeck } from '../database/Deck';
+import { IMatch, Match } from '../database/Match';
+import { IProfile, Profile } from '../database/Profile';
+import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
 export = <Command>{
@@ -103,7 +97,7 @@ export = <Command>{
                 (seasonWins / (seasonMatches.length || 1)) * 100
             )}% this season)`;
 
-            const config = await Config.findOneAndUpdate(
+            const config: IConfig = await Config.findOneAndUpdate(
                 {},
                 {},
                 { new: true, upsert: true }

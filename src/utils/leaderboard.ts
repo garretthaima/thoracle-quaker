@@ -1,5 +1,7 @@
 import { APIEmbedField, userMention } from 'discord.js';
-import { IConfig, IMatch, ISeason, Match } from '../database';
+import { IConfig } from '../database/Config';
+import { IMatch, Match } from '../database/Match';
+import { ISeason } from '../database/Season';
 
 export async function leaderboardFields(
     config: IConfig,

@@ -5,7 +5,8 @@ import {
     TimestampStyles,
     time,
 } from 'discord.js';
-import { Match, Season } from '../database';
+import { Match } from '../database/Match';
+import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
 export = <Command>{
@@ -62,7 +63,7 @@ async function handleInfo(
     interaction: ChatInputCommandInteraction,
     name: string | null
 ) {
-    const season = await Season.findOne(
+    const season: ISeason | null = await Season.findOne(
         name === null ? { endDate: { $exists: false } } : { name }
     );
 
@@ -117,7 +118,7 @@ async function handleStart(
         });
     }
 
-    const existingSeason = await Season.findOne({
+    const existingSeason: ISeason | null = await Season.findOne({
         $or: [{ endDate: { $exists: false } }, { name }],
     });
 
@@ -151,7 +152,7 @@ async function handleEnd(interaction: ChatInputCommandInteraction) {
         });
     }
 
-    const existingSeason = await Season.findOneAndUpdate(
+    const existingSeason: ISeason | null = await Season.findOneAndUpdate(
         { endDate: { $exists: false } },
         { endDate: Date.now() }
     );

@@ -4,7 +4,8 @@ import {
     messageLink,
     userMention,
 } from 'discord.js';
-import { Deck, IDeck, IMatch } from '../database';
+import { Deck, IDeck } from '../database/Deck';
+import { IMatch } from '../database/Match';
 
 export async function matchListFields(
     matches: IMatch[]

@@ -1,5 +1,5 @@
 import { ButtonInteraction } from 'discord.js';
-import { IMatch, Match } from './database';
+import { IMatch, Match } from './database/Match';
 import {
     handleCancelMatch,
     handleConfirmMatch,

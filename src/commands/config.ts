@@ -3,7 +3,7 @@ import {
     PermissionsBitField,
     SlashCommandBuilder,
 } from 'discord.js';
-import { Config, IConfig } from '../database';
+import { Config, IConfig } from '../database/Config';
 import { Command } from '../types/Command';
 
 export = <Command>{

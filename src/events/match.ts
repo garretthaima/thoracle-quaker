@@ -1,6 +1,6 @@
 import { ButtonInteraction, channelMention, userMention } from 'discord.js';
 import { client } from '..';
-import { IMatch } from '../database';
+import { IMatch } from '../database/Match';
 
 export async function handleConfirmMatch(
     button: ButtonInteraction,

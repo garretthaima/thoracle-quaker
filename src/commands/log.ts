@@ -8,15 +8,10 @@ import {
     SlashCommandBuilder,
     userMention,
 } from 'discord.js';
-import {
-    Deck,
-    IDeck,
-    IProfile,
-    ISeason,
-    Match,
-    Profile,
-    Season,
-} from '../database';
+import { Deck, IDeck } from '../database/Deck';
+import { Match } from '../database/Match';
+import { IProfile, Profile } from '../database/Profile';
+import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
 export = <Command>{
