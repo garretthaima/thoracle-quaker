@@ -17,6 +17,11 @@ export = <Command>{
         )
         .addSubcommand((command) =>
             command
+                .setName('disputed')
+                .setDescription('Lists disputed matches.')
+        )
+        .addSubcommand((command) =>
+            command
                 .setName('accept')
                 .setDescription('Accepts a match.')
                 .addStringOption((option) =>
@@ -43,6 +48,10 @@ export = <Command>{
         switch (interaction.options.getSubcommand()) {
             case 'pending':
                 await handlePending(interaction);
+                break;
+
+            case 'disputed':
+                await handleDisputed(interaction);
                 break;
 
             case 'accept':
@@ -77,6 +86,35 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
         .setTitle('Pending Matches - Page 1')
         .setDescription('These are matches that have not been confirmed yet.')
+        .setColor('Blue')
+        .addFields(fields);
+
+    await interaction.reply({
+        embeds: [embed],
+        ephemeral: true,
+    });
+}
+
+async function handleDisputed(interaction: ChatInputCommandInteraction) {
+    const matches: IMatch[] = await Match.find({
+        'players.confirmed': false,
+        disputeThreadId: { $exists: true },
+    });
+
+    if (!matches.length) {
+        return await interaction.reply({
+            content: 'There are no disputed matches.',
+            ephemeral: true,
+        });
+    }
+
+    const fields = await matchListFields(matches.slice(0, 4));
+
+    const embed = new EmbedBuilder()
+        .setTitle('Disputed Matches - Page 1')
+        .setDescription(
+            'These are disputed matches that have not been confirmed yet.'
+        )
         .setColor('Blue')
         .addFields(fields);
 
