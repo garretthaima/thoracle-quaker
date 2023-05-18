@@ -97,7 +97,19 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
         });
     }
 
-    const matches: IMatch[] = await Match.find({ 'players.confirmed': false });
+    const season = await Season.findOne({ endDate: { $exists: false } });
+
+    if (!season) {
+        return await interaction.reply({
+            content: 'There is no current season.',
+            ephemeral: true,
+        });
+    }
+
+    const matches: IMatch[] = await Match.find({
+        season: season._id,
+        'players.confirmed': false,
+    });
 
     if (!matches.length) {
         return await interaction.reply({
@@ -128,7 +140,17 @@ async function handleDisputed(interaction: ChatInputCommandInteraction) {
         });
     }
 
+    const season = await Season.findOne({ endDate: { $exists: false } });
+
+    if (!season) {
+        return await interaction.reply({
+            content: 'There is no current season.',
+            ephemeral: true,
+        });
+    }
+
     const matches: IMatch[] = await Match.find({
+        season: season._id,
         'players.confirmed': false,
         disputeThreadId: { $exists: true },
     });
