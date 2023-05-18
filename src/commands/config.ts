@@ -162,7 +162,7 @@ async function handlePointsLost(
 
 async function handleBasePoints(
     interaction: ChatInputCommandInteraction,
-    amount: number | null
+    amount: number
 ) {
     if (!interaction.memberPermissions?.has('ManageGuild')) {
         return await interaction.reply({

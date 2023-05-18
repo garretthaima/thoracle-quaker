@@ -62,7 +62,7 @@ export = <Command>{
             case 'stats':
                 await handleStats(
                     interaction,
-                    interaction.options.getString('name') ?? null
+                    interaction.options.getString('name')
                 );
                 break;
         }

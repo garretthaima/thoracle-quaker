@@ -3,7 +3,7 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js';
-import { IMatch, Match } from '../database';
+import { Deck, IDeck, IMatch, ISeason, Match, Season } from '../database';
 import { Command } from '../types/Command';
 import { matchListFields } from '../utils/match';
 
@@ -82,8 +82,8 @@ export = <Command>{
             case 'list':
                 await handleList(
                     interaction,
-                    interaction.options.getString('deck') ?? null,
-                    interaction.options.getString('season') ?? null
+                    interaction.options.getString('deck'),
+                    interaction.options.getString('season-name')
                 );
         }
     },
@@ -231,11 +231,64 @@ async function handleDelete(
 
 async function handleList(
     interaction: ChatInputCommandInteraction,
-    deck: string | null,
-    season: string | null
+    deckName: string | null,
+    seasonName: string | null
 ) {
+    const deck: IDeck | null = deckName
+        ? await Deck.findOne({ userId: interaction.user.id, name: deckName })
+        : null;
+
+    if (deckName && !deck) {
+        return await interaction.reply({
+            content: 'You have no deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    const season: ISeason | null = seasonName
+        ? await Season.findOne({ name: seasonName })
+        : null;
+
+    if (seasonName && !season) {
+        return await interaction.reply({
+            content: 'You have no season with that name.',
+            ephemeral: true,
+        });
+    }
+
+    const matches: IMatch[] = await Match.find({
+        players: {
+            $elemMatch: {
+                userId: interaction.user.id,
+                deck: deck?._id ?? undefined,
+                season: season?._id ?? undefined,
+            },
+        },
+        'players.userId': interaction.user.id,
+    });
+
+    const constraintsText =
+        deckName || seasonName ? ' with those constraints' : '';
+
+    if (!matches.length) {
+        return await interaction.reply({
+            content: `You have not played any matches${constraintsText}.`,
+            ephemeral: true,
+        });
+    }
+
+    const fields = await matchListFields(matches.slice(0, 4));
+
+    const embed = new EmbedBuilder()
+        .setTitle('Your Matches - Page 1')
+        .setDescription(
+            `These are the matches that you have played in${constraintsText}.`
+        )
+        .setColor('Blue')
+        .addFields(fields);
+
     await interaction.reply({
-        content: 'Test',
+        embeds: [embed],
         ephemeral: true,
     });
 }
