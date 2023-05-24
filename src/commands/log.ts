@@ -21,19 +21,19 @@ export = <Command>{
         .addUserOption((option) =>
             option
                 .setName('player-1')
-                .setDescription('The first player other than the winner.')
+                .setDescription('First player other than winner.')
                 .setRequired(true)
         )
         .addUserOption((option) =>
             option
                 .setName('player-2')
-                .setDescription('The second player other than the winner.')
+                .setDescription('Second player other than winner.')
                 .setRequired(true)
         )
         .addUserOption((option) =>
             option
                 .setName('player-3')
-                .setDescription('The third player other than the winner.')
+                .setDescription('Third player other than winner.')
                 .setRequired(true)
         ),
 
@@ -92,7 +92,11 @@ export = <Command>{
 
         const deckText = decks
             .map((deck) =>
-                deck ? `[${deck.name}](${deck.deckList})` : 'Not specified'
+                deck
+                    ? deck.deckList
+                        ? `[${deck.name}](${deck.deckList})`
+                        : deck.name
+                    : 'Not specified'
             )
             .join('\n');
 

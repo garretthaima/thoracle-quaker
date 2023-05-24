@@ -35,7 +35,11 @@ export async function matchListFields(
                         });
 
                         if (deck) {
-                            deckText = ` ([${deck.name}](${deck.deckList}))`;
+                            deckText = ` ( ${
+                                deck.deckList
+                                    ? `[${deck.name}](${deck.deckList})`
+                                    : deck.name
+                            })`;
                         }
                     }
 

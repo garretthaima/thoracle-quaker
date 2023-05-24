@@ -28,7 +28,7 @@ export = <Command>{
                 .addStringOption((option) =>
                     option
                         .setName('match')
-                        .setDescription('The match to accept.')
+                        .setDescription('Match to accept.')
                         .setRequired(true)
                 )
         )
@@ -39,7 +39,7 @@ export = <Command>{
                 .addStringOption((option) =>
                     option
                         .setName('match')
-                        .setDescription('The match to delete.')
+                        .setDescription('Match to delete.')
                         .setRequired(true)
                 )
         )
@@ -48,12 +48,10 @@ export = <Command>{
                 .setName('list')
                 .setDescription('Displays your matches.')
                 .addStringOption((option) =>
-                    option.setName('deck').setDescription('The deck you used.')
+                    option.setName('deck').setDescription('Filter by deck.')
                 )
                 .addStringOption((option) =>
-                    option
-                        .setName('season')
-                        .setDescription('The season you played in.')
+                    option.setName('season').setDescription('Filter by season.')
                 )
         ),
 

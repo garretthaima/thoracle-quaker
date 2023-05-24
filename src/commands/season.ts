@@ -18,7 +18,7 @@ export = <Command>{
                 .setName('info')
                 .setDescription('Shows info about a season.')
                 .addStringOption((option) =>
-                    option.setName('name').setDescription('The season name.')
+                    option.setName('name').setDescription('Name of the season.')
                 )
         )
         .addSubcommand((command) =>
@@ -28,7 +28,7 @@ export = <Command>{
                 .addStringOption((option) =>
                     option
                         .setName('name')
-                        .setDescription('The season name.')
+                        .setDescription('Name of the season.')
                         .setRequired(true)
                 )
         )

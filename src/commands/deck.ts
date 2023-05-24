@@ -4,6 +4,7 @@ import {
     SlashCommandBuilder,
 } from 'discord.js';
 
+import { fetchConfig } from '../database/Config';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { IProfile, Profile } from '../database/Profile';
@@ -16,8 +17,8 @@ export = <Command>{
         .setDescription('Manages your decks.')
         .addSubcommand((command) =>
             command
-                .setName('use')
-                .setDescription('Sets your current deck.')
+                .setName('create')
+                .setDescription('Creates a new deck.')
                 .addStringOption((option) =>
                     option
                         .setName('name')
@@ -30,6 +31,21 @@ export = <Command>{
                         .setName('deck-list')
                         .setDescription('URL for the decklist.')
                         .setMaxLength(256)
+                )
+        )
+        .addSubcommand((command) =>
+            command
+                .setName('list')
+                .setDescription('Shows a list of your decks.')
+        )
+        .addSubcommand((command) =>
+            command
+                .setName('use')
+                .setDescription('Uses a saved deck.')
+                .addStringOption((option) =>
+                    option
+                        .setName('name')
+                        .setDescription('Name of the deck.')
                         .setRequired(true)
                 )
         )
@@ -38,19 +54,28 @@ export = <Command>{
                 .setName('stats')
                 .setDescription('Displays your deck statistics.')
                 .addStringOption((option) =>
-                    option
-                        .setName('name')
-                        .setDescription('The deck to check the stats of.')
+                    option.setName('name').setDescription('Name of the deck.')
                 )
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {
         switch (interaction.options.getSubcommand()) {
+            case 'create':
+                await handleCreate(
+                    interaction,
+                    interaction.options.getString('name', true),
+                    interaction.options.getString('deck-list')
+                );
+                break;
+
+            case 'list':
+                await handleList(interaction);
+                break;
+
             case 'use':
                 await handleUse(
                     interaction,
-                    interaction.options.getString('name', true),
-                    interaction.options.getString('deck-list', true)
+                    interaction.options.getString('name', true)
                 );
                 break;
 
@@ -64,28 +89,66 @@ export = <Command>{
     },
 };
 
-async function handleUse(
+async function handleCreate(
     interaction: ChatInputCommandInteraction,
     name: string,
-    deckList: string
+    deckList: string | null
 ) {
-    const existingDecks = await Deck.count({ userId: interaction.user.id });
+    const config = await fetchConfig();
 
-    if (existingDecks >= 50) {
+    const deckCount = await Deck.count({ userId: interaction.user.id });
+
+    if (deckCount >= config.deckLimit) {
         return await interaction.reply({
             content: 'You have reached the deck limit.',
             ephemeral: true,
         });
     }
 
-    const deck: IDeck = await Deck.findOneAndUpdate(
-        {
-            userId: interaction.user.id,
-            $or: [{ name }, { deckList }],
-        },
-        { $set: { userId: interaction.user.id, name, deckList } },
-        { new: true, upsert: true }
-    );
+    const existingDeck: IDeck | null = await Deck.findOne({
+        userId: interaction.user.id,
+        name,
+    });
+
+    if (existingDeck) {
+        return await interaction.reply({
+            content: 'You already have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    if (deckList) {
+        const hostname = new URL(deckList).hostname
+            .replace(/^www\./, '')
+            .toLowerCase();
+
+        const validHosts = [
+            'tappedout.net',
+            'deckstats.net',
+            'aetherhub.com',
+            'moxfield.com',
+            'tcgplayer.com',
+            'archidekt.com',
+            'scryfall.com',
+        ];
+
+        if (!validHosts.includes(hostname)) {
+            const hostText = validHosts
+                .map((host) => '`' + host + '`')
+                .join(', ');
+
+            return await interaction.reply({
+                content: `The deck list must be from one of the following websites: ${hostText}.`,
+                ephemeral: true,
+            });
+        }
+    }
+
+    const deck: IDeck = await Deck.create({
+        userId: interaction.user.id,
+        name,
+        deckList: deckList || undefined,
+    });
 
     await Profile.findOneAndUpdate(
         { _id: interaction.user.id },
@@ -94,7 +157,63 @@ async function handleUse(
     );
 
     await interaction.reply({
-        content: 'The deck is now in use.',
+        content: 'The deck has been created and set as current.',
+        ephemeral: true,
+    });
+}
+
+async function handleList(interaction: ChatInputCommandInteraction) {
+    const decks: IDeck[] = await Deck.find({ userId: interaction.user.id });
+
+    if (!decks.length) {
+        return await interaction.reply({
+            content: 'You have not created any decks.',
+            ephemeral: true,
+        });
+    }
+
+    const text = decks
+        .map((deck) =>
+            deck.deckList ? `[${deck.name}](${deck.deckList})` : deck.name
+        )
+        .join('\n');
+
+    const embed = new EmbedBuilder()
+        .setTitle('Deck List')
+        .setThumbnail(interaction.user.displayAvatarURL())
+        .setDescription(text)
+        .setColor('Blue');
+
+    await interaction.reply({
+        embeds: [embed],
+        ephemeral: true,
+    });
+}
+
+async function handleUse(
+    interaction: ChatInputCommandInteraction,
+    name: string
+) {
+    const deck: IDeck | null = await Deck.findOne({
+        userId: interaction.user.id,
+        name,
+    });
+
+    if (!deck) {
+        return await interaction.reply({
+            content: 'You do not have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    await Profile.findOneAndUpdate(
+        { _id: interaction.user.id },
+        { $set: { currentDeck: deck._id } },
+        { upsert: true }
+    );
+
+    await interaction.reply({
+        content: 'The deck has been set as current.',
         ephemeral: true,
     });
 }
@@ -103,14 +222,12 @@ async function handleStats(
     interaction: ChatInputCommandInteraction,
     name: string | null
 ) {
-    // User profile
     const profile: IProfile = await Profile.findOneAndUpdate(
         { _id: interaction.user.id },
         { _id: interaction.user.id },
         { new: true, upsert: true }
     );
 
-    // Current deck
     const deck: IDeck | null =
         name === null
             ? profile.currentDeck
@@ -128,17 +245,16 @@ async function handleStats(
         });
     }
 
-    // Create embed
     const embed = new EmbedBuilder()
         .setTitle(`Deck Statistics - ${deck.name}`)
-        .setURL(deck.deckList)
         .setThumbnail(interaction.user.displayAvatarURL())
         .setDescription(
             `This is the statistics for [${deck.name}](${deck.deckList}), both overall and for this season.`
         )
         .setColor('Blue');
 
-    // Match statistics
+    if (deck.deckList) embed.setURL(deck.deckList);
+
     const matches: IMatch[] = await Match.find({
         players: {
             $elemMatch: { userId: interaction.user.id, deck: deck._id },
@@ -168,7 +284,6 @@ async function handleStats(
         (wins / (matches.length || 1)) * 100
     )}% winrate with this deck`;
 
-    // Season statistics
     const season: ISeason | null = await Season.findOne({
         endDate: { $exists: false },
     });

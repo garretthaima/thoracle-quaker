@@ -13,7 +13,7 @@ export = <Command>{
         .setName('top')
         .setDescription('Displays the season leaderboard.')
         .addStringOption((option) =>
-            option.setName('season').setDescription('The season to show.')
+            option.setName('season').setDescription('Name of the season.')
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {

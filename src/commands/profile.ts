@@ -41,7 +41,9 @@ export = <Command>{
             : null;
 
         const deckText = deck
-            ? `[${deck.name}](${deck.deckList})`
+            ? deck.deckList
+                ? `[${deck.name}](${deck.deckList})`
+                : deck.name
             : 'No deck selected.';
 
         embed.addFields({ name: 'Current Deck', value: deckText });
