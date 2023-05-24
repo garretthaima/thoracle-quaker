@@ -75,6 +75,13 @@ export = <Command>{
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     async execute(interaction: ChatInputCommandInteraction) {
+        if (!interaction.guildId) {
+            return await interaction.reply({
+                content: 'This command cannot be run in direct messages.',
+                ephemeral: true,
+            });
+        }
+
         switch (interaction.options.getSubcommand()) {
             case 'minimum-games':
                 await handleMinimumGames(
@@ -126,14 +133,7 @@ async function handleMinimumGames(
     interaction: ChatInputCommandInteraction,
     amount: number | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
-    const config = await fetchConfig({
+    const config = await fetchConfig(interaction.guildId!, {
         $set: {
             minimumGamesPerPlayer: amount ?? undefined,
         },
@@ -151,14 +151,7 @@ async function handlePointsGained(
     interaction: ChatInputCommandInteraction,
     amount: number | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
-    const config = await fetchConfig({
+    const config = await fetchConfig(interaction.guildId!, {
         $set: {
             pointsGained: amount ?? undefined,
         },
@@ -176,14 +169,7 @@ async function handlePointsLost(
     interaction: ChatInputCommandInteraction,
     amount: number | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
-    const config = await fetchConfig({
+    const config = await fetchConfig(interaction.guildId!, {
         $set: {
             pointsLost: amount ?? undefined,
         },
@@ -201,14 +187,7 @@ async function handleBasePoints(
     interaction: ChatInputCommandInteraction,
     amount: number | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
-    const config = await fetchConfig({
+    const config = await fetchConfig(interaction.guildId!, {
         $set: {
             basePoints: amount ?? undefined,
         },
@@ -226,14 +205,7 @@ async function handleDeckLimit(
     interaction: ChatInputCommandInteraction,
     amount: number | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
-    const config = await fetchConfig({
+    const config = await fetchConfig(interaction.guildId!, {
         $set: {
             deckLimit: amount ?? undefined,
         },
@@ -252,23 +224,16 @@ async function handleDisputeRole(
     role: Role | APIRole | null,
     unset: boolean | null
 ) {
-    if (!interaction.memberPermissions?.has('ManageGuild')) {
-        return await interaction.reply({
-            content: 'You do not have permission to do this.',
-            ephemeral: true,
-        });
-    }
-
     let config: IConfig;
 
     if (unset) {
-        config = await fetchConfig({
+        config = await fetchConfig(interaction.guildId!, {
             $unset: {
                 disputeRoleId: '',
             },
         });
     } else {
-        config = await fetchConfig({
+        config = await fetchConfig(interaction.guildId!, {
             $set: {
                 disputeRoleId: role?.id ?? undefined,
             },

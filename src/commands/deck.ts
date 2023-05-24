@@ -59,6 +59,13 @@ export = <Command>{
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {
+        if (!interaction.guildId) {
+            return await interaction.reply({
+                content: 'This command cannot be run in direct messages.',
+                ephemeral: true,
+            });
+        }
+
         switch (interaction.options.getSubcommand()) {
             case 'create':
                 await handleCreate(
@@ -94,9 +101,12 @@ async function handleCreate(
     name: string,
     deckList: string | null
 ) {
-    const config = await fetchConfig();
+    const config = await fetchConfig(interaction.guildId!);
 
-    const deckCount = await Deck.count({ userId: interaction.user.id });
+    const deckCount = await Deck.count({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+    });
 
     if (deckCount >= config.deckLimit) {
         return await interaction.reply({
@@ -106,6 +116,7 @@ async function handleCreate(
     }
 
     const existingDeck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
         userId: interaction.user.id,
         name,
     });
@@ -145,13 +156,14 @@ async function handleCreate(
     }
 
     const deck: IDeck = await Deck.create({
+        guildId: interaction.guildId!,
         userId: interaction.user.id,
         name,
         deckList: deckList || undefined,
     });
 
     await Profile.findOneAndUpdate(
-        { _id: interaction.user.id },
+        { _id: interaction.user.id, guildId: interaction.guildId! },
         { $set: { currentDeck: deck._id } },
         { upsert: true }
     );
@@ -163,7 +175,10 @@ async function handleCreate(
 }
 
 async function handleList(interaction: ChatInputCommandInteraction) {
-    const decks: IDeck[] = await Deck.find({ userId: interaction.user.id });
+    const decks: IDeck[] = await Deck.find({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+    });
 
     if (!decks.length) {
         return await interaction.reply({
@@ -195,6 +210,7 @@ async function handleUse(
     name: string
 ) {
     const deck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
         userId: interaction.user.id,
         name,
     });
@@ -207,7 +223,7 @@ async function handleUse(
     }
 
     await Profile.findOneAndUpdate(
-        { _id: interaction.user.id },
+        { _id: interaction.user.id, guildId: interaction.guildId! },
         { $set: { currentDeck: deck._id } },
         { upsert: true }
     );
@@ -223,8 +239,8 @@ async function handleStats(
     name: string | null
 ) {
     const profile: IProfile = await Profile.findOneAndUpdate(
-        { _id: interaction.user.id },
-        { _id: interaction.user.id },
+        { _id: interaction.user.id, guildId: interaction.guildId! },
+        {},
         { new: true, upsert: true }
     );
 
@@ -233,7 +249,11 @@ async function handleStats(
             ? profile.currentDeck
                 ? await Deck.findOne({ _id: profile.currentDeck })
                 : null
-            : await Deck.findOne({ userId: interaction.user.id, name });
+            : await Deck.findOne({
+                  guildId: interaction.guildId!,
+                  userId: interaction.user.id,
+                  name,
+              });
 
     if (!deck) {
         return await interaction.reply({
@@ -256,6 +276,7 @@ async function handleStats(
     if (deck.deckList) embed.setURL(deck.deckList);
 
     const matches: IMatch[] = await Match.find({
+        guildId: interaction.guildId!,
         players: {
             $elemMatch: { userId: interaction.user.id, deck: deck._id },
         },
@@ -285,6 +306,7 @@ async function handleStats(
     )}% winrate with this deck`;
 
     const season: ISeason | null = await Season.findOne({
+        guildId: interaction.guildId!,
         endDate: { $exists: false },
     });
 

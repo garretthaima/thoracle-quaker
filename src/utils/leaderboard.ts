@@ -4,10 +4,12 @@ import { IMatch, Match } from '../database/Match';
 import { ISeason } from '../database/Season';
 
 export async function leaderboardFields(
+    guildId: string,
     config: IConfig,
     season: ISeason
 ): Promise<APIEmbedField[]> {
     const matches: IMatch[] = await Match.find({
+        guildId: guildId,
         season: season._id,
         $nor: [{ 'players.confirmed': false }],
     });

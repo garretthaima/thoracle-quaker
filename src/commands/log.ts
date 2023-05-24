@@ -39,6 +39,7 @@ export = <Command>{
 
     async execute(interaction: ChatInputCommandInteraction) {
         const season: ISeason | null = await Season.findOne({
+            guildId: interaction.guildId!,
             endDate: { $exists: false },
         });
 
@@ -65,8 +66,8 @@ export = <Command>{
 
         const profilePromises = playerIds.map((userId) =>
             Profile.findOneAndUpdate<IProfile>(
-                { _id: userId },
-                { $set: { _id: userId } },
+                { _id: userId, guildId: interaction.guildId! },
+                {},
                 { new: true, upsert: true }
             )
         );

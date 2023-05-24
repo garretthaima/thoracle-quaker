@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IDeck extends Document {
+    guildId: string;
     userId: string;
     name: string;
     deckList?: string;
@@ -8,6 +9,7 @@ export interface IDeck extends Document {
 }
 
 const deckSchema = new Schema({
+    guildId: { type: String, required: true },
     userId: { type: String, required: true },
     name: { type: String, required: true },
     deckList: String,

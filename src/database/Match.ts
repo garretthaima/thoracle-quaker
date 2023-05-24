@@ -1,11 +1,12 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export interface IMatch extends Document {
-    season: Types.ObjectId;
+    guildId: string;
     channelId: string;
     messageId: string;
-    disputeThreadId: string;
     winnerUserId: string;
+    disputeThreadId?: string;
+    season: Types.ObjectId;
     players: IMatchPlayer[];
     createdAt: Date;
     confirmedAt?: Date;
@@ -18,11 +19,12 @@ export interface IMatchPlayer {
 }
 
 const matchSchema = new Schema({
-    season: { type: Schema.Types.ObjectId, ref: 'Season', required: true },
+    guildId: { type: String, required: true },
     channelId: { type: String, required: true },
     messageId: { type: String, required: true },
-    disputeThreadId: String,
     winnerUserId: { type: String, required: true },
+    disputeThreadId: String,
+    season: { type: Schema.Types.ObjectId, ref: 'Season', required: true },
     players: [
         {
             userId: { type: String, required: true },

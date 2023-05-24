@@ -3,7 +3,7 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js';
-import { Config, IConfig } from '../database/Config';
+import { fetchConfig } from '../database/Config';
 import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 import { leaderboardFields } from '../utils/leaderboard';
@@ -20,7 +20,9 @@ export = <Command>{
         const name = interaction.options.getString('season');
 
         const season: ISeason | null = await Season.findOne(
-            name === null ? { endDate: { $exists: false } } : { name }
+            name === null
+                ? { guildId: interaction.guildId!, endDate: { $exists: false } }
+                : { guildId: interaction.guildId!, name }
         );
 
         if (!season) {
@@ -33,11 +35,7 @@ export = <Command>{
             });
         }
 
-        const config: IConfig = await Config.findOneAndUpdate(
-            {},
-            {},
-            { new: true, upsert: true }
-        );
+        const config = await fetchConfig(interaction.guildId!);
 
         const fields = await leaderboardFields(config, season);
 

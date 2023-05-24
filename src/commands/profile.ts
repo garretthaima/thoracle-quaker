@@ -4,7 +4,7 @@ import {
     SlashCommandBuilder,
     userMention,
 } from 'discord.js';
-import { Config, IConfig } from '../database/Config';
+import { fetchConfig } from '../database/Config';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { IProfile, Profile } from '../database/Profile';
@@ -19,8 +19,8 @@ export = <Command>{
     async execute(interaction: ChatInputCommandInteraction) {
         // User profile
         const profile: IProfile = await Profile.findOneAndUpdate(
-            { _id: interaction.user.id },
-            { _id: interaction.user.id },
+            { _id: interaction.user.id, guildId: interaction.guildId! },
+            {},
             { new: true, upsert: true }
         );
 
@@ -50,6 +50,7 @@ export = <Command>{
 
         // Match statistics
         const matches: IMatch[] = await Match.find({
+            guildId: interaction.guildId!,
             'players.userId': interaction.user.id,
             $nor: [{ 'players.confirmed': false }],
         });
@@ -78,6 +79,7 @@ export = <Command>{
 
         // Season statistics
         const season: ISeason | null = await Season.findOne({
+            guildId: interaction.guildId!,
             endDate: { $exists: false },
         });
 
@@ -99,11 +101,7 @@ export = <Command>{
                 (seasonWins / (seasonMatches.length || 1)) * 100
             )}% this season)`;
 
-            const config: IConfig = await Config.findOneAndUpdate(
-                {},
-                {},
-                { new: true, upsert: true }
-            );
+            const config = await fetchConfig(interaction.guildId!);
 
             const points =
                 wins * config.pointsGained - losses * config.pointsLost;

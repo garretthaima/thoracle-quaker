@@ -64,7 +64,9 @@ async function handleInfo(
     name: string | null
 ) {
     const season: ISeason | null = await Season.findOne(
-        name === null ? { endDate: { $exists: false } } : { name }
+        name === null
+            ? { guildId: interaction.guildId!, endDate: { $exists: false } }
+            : { guildId: interaction.guildId!, name }
     );
 
     if (!season) {
@@ -119,7 +121,10 @@ async function handleStart(
     }
 
     const existingSeason: ISeason | null = await Season.findOne({
-        $or: [{ endDate: { $exists: false } }, { name }],
+        $or: [
+            { guildId: interaction.guildId!, endDate: { $exists: false } },
+            { guildId: interaction.guildId!, name },
+        ],
     });
 
     if (existingSeason) {
@@ -153,7 +158,7 @@ async function handleEnd(interaction: ChatInputCommandInteraction) {
     }
 
     const existingSeason: ISeason | null = await Season.findOneAndUpdate(
-        { endDate: { $exists: false } },
+        { guildId: interaction.guildId!, endDate: { $exists: false } },
         { endDate: Date.now() }
     );
 

@@ -20,29 +20,32 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-async function handleButton(button: ButtonInteraction) {
+async function handleButton(interaction: ButtonInteraction) {
+    if (!interaction.guildId) return;
+
     const match: IMatch | null = await Match.findOne({
-        messageId: button.message.id,
+        guildId: interaction.guildId,
+        messageId: interaction.message.id,
     });
 
     if (!match) {
-        return await button.reply({
+        return await interaction.reply({
             content: 'That match no longer exists.',
             ephemeral: true,
         });
     }
 
-    switch (button.customId) {
+    switch (interaction.customId) {
         case 'confirm':
-            await handleConfirmMatch(button, match);
+            await handleConfirmMatch(interaction, match);
             break;
 
         case 'dispute':
-            await handleDisputeMatch(button, match);
+            await handleDisputeMatch(interaction, match);
             break;
 
         case 'cancel':
-            await handleCancelMatch(button, match);
+            await handleCancelMatch(interaction, match);
             break;
     }
 }

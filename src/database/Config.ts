@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, UpdateQuery } from 'mongoose';
 
 export interface IConfig extends Document {
+    guildId: string;
     minimumGamesPerPlayer: number;
     pointsGained: number;
     pointsLost: number;
@@ -10,6 +11,7 @@ export interface IConfig extends Document {
 }
 
 const configSchema = new Schema({
+    guildId: { type: String, required: true },
     minimumGamesPerPlayer: { type: Number, default: 10 },
     pointsGained: { type: Number, default: 1 },
     pointsLost: { type: Number, default: 0 },
@@ -21,9 +23,10 @@ const configSchema = new Schema({
 export const Config = mongoose.model('Config', configSchema);
 
 export async function fetchConfig(
+    guildId: string,
     query: UpdateQuery<IConfig> = {}
 ): Promise<IConfig> {
-    return await Config.findOneAndUpdate({}, query, {
+    return await Config.findOneAndUpdate({ guildId }, query, {
         new: true,
         upsert: true,
     });

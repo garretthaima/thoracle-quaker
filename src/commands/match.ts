@@ -97,7 +97,10 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
         });
     }
 
-    const season = await Season.findOne({ endDate: { $exists: false } });
+    const season = await Season.findOne({
+        guildId: interaction.guildId!,
+        endDate: { $exists: false },
+    });
 
     if (!season) {
         return await interaction.reply({
@@ -107,6 +110,7 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
     }
 
     const matches: IMatch[] = await Match.find({
+        guildId: interaction.guildId!,
         season: season._id,
         'players.confirmed': false,
     });
@@ -140,7 +144,10 @@ async function handleDisputed(interaction: ChatInputCommandInteraction) {
         });
     }
 
-    const season = await Season.findOne({ endDate: { $exists: false } });
+    const season = await Season.findOne({
+        guildId: interaction.guildId!,
+        endDate: { $exists: false },
+    });
 
     if (!season) {
         return await interaction.reply({
@@ -150,6 +157,7 @@ async function handleDisputed(interaction: ChatInputCommandInteraction) {
     }
 
     const matches: IMatch[] = await Match.find({
+        guildId: interaction.guildId!,
         season: season._id,
         'players.confirmed': false,
         disputeThreadId: { $exists: true },
@@ -194,6 +202,13 @@ async function handleAccept(
     if (!match) {
         return await interaction.reply({
             content: 'There is no match with that id.',
+            ephemeral: true,
+        });
+    }
+
+    if (match.guildId !== interaction.guildId) {
+        return await interaction.reply({
+            content: 'That match is from another server.',
             ephemeral: true,
         });
     }
@@ -243,6 +258,13 @@ async function handleDelete(
         });
     }
 
+    if (match.guildId !== interaction.guildId) {
+        return await interaction.reply({
+            content: 'That match is from another server.',
+            ephemeral: true,
+        });
+    }
+
     await match.deleteOne();
 
     await interaction.reply({
@@ -257,7 +279,11 @@ async function handleList(
     seasonName: string | null
 ) {
     const deck: IDeck | null = deckName
-        ? await Deck.findOne({ userId: interaction.user.id, name: deckName })
+        ? await Deck.findOne({
+              guildId: interaction.guildId!,
+              userId: interaction.user.id,
+              name: deckName,
+          })
         : null;
 
     if (deckName && !deck) {
@@ -268,17 +294,21 @@ async function handleList(
     }
 
     const season: ISeason | null = seasonName
-        ? await Season.findOne({ name: seasonName })
+        ? await Season.findOne({
+              guildId: interaction.guildId!,
+              name: seasonName,
+          })
         : null;
 
     if (seasonName && !season) {
         return await interaction.reply({
-            content: 'You have no season with that name.',
+            content: 'There is no season with that name.',
             ephemeral: true,
         });
     }
 
     const matches: IMatch[] = await Match.find({
+        guildId: interaction.guildId!,
         players: {
             $elemMatch: {
                 userId: interaction.user.id,

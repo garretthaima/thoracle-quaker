@@ -77,7 +77,7 @@ export async function handleDisputeMatch(
 ) {
     if (!interaction.guild) return;
 
-    const config = await fetchConfig();
+    const config = await fetchConfig(interaction.guildId!);
 
     const matchPlayer = match.players.find(
         (player) => player.userId === interaction.user.id
@@ -171,7 +171,10 @@ export async function handleCancelMatch(
             channel.messages.delete(match.messageId).catch(() => null);
         }
 
-        const disputeChannel = client.channels.cache.get(match.disputeThreadId);
+        const disputeChannel = match.disputeThreadId
+            ? client.channels.cache.get(match.disputeThreadId)
+            : undefined;
+
         await disputeChannel?.delete();
     }
 
