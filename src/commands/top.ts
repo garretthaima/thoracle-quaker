@@ -35,7 +35,11 @@ export = <Command>{
 
         const config = await fetchConfig(interaction.guildId!);
 
-        const fields = await leaderboardFields(config, season);
+        const fields = await leaderboardFields(
+            interaction.guildId!,
+            config,
+            season
+        );
 
         const embed = new EmbedBuilder()
             .setTitle(`Season Leaderboard - ${season.name}`)
