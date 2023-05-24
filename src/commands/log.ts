@@ -5,37 +5,38 @@ import {
     ChatInputCommandInteraction,
     EmbedBuilder,
     MessageActionRowComponentBuilder,
-    SlashCommandBuilder,
     userMention,
 } from 'discord.js';
 import { Deck, IDeck } from '../database/Deck';
 import { Match } from '../database/Match';
 import { fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand } from '../types/Command';
+
+const command = newCommand()
+    .setName('log')
+    .setDescription('Logs a match with you as the winner.')
+    .addUserOption((option) =>
+        option
+            .setName('player-1')
+            .setDescription('First player other than winner.')
+            .setRequired(true)
+    )
+    .addUserOption((option) =>
+        option
+            .setName('player-2')
+            .setDescription('Second player other than winner.')
+            .setRequired(true)
+    )
+    .addUserOption((option) =>
+        option
+            .setName('player-3')
+            .setDescription('Third player other than winner.')
+            .setRequired(true)
+    );
 
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('log')
-        .setDescription('Logs a match with you as the winner.')
-        .addUserOption((option) =>
-            option
-                .setName('player-1')
-                .setDescription('First player other than winner.')
-                .setRequired(true)
-        )
-        .addUserOption((option) =>
-            option
-                .setName('player-2')
-                .setDescription('Second player other than winner.')
-                .setRequired(true)
-        )
-        .addUserOption((option) =>
-            option
-                .setName('player-3')
-                .setDescription('Third player other than winner.')
-                .setRequired(true)
-        ),
+    data: command,
 
     async execute(interaction: ChatInputCommandInteraction) {
         const season: ISeason | null = await Season.findOne({

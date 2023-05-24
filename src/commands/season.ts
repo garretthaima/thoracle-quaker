@@ -1,40 +1,43 @@
 import {
     ChatInputCommandInteraction,
     EmbedBuilder,
-    SlashCommandBuilder,
     TimestampStyles,
     time,
 } from 'discord.js';
 import { Match } from '../database/Match';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand, newSubcommand } from '../types/Command';
+
+const command = newCommand()
+    .setName('season')
+    .setDescription('Manages the current season.');
+
+const seasonInfo = newSubcommand()
+    .setName('info')
+    .setDescription('Shows info about a season.')
+    .addStringOption((option) =>
+        option.setName('name').setDescription('Name of the season.')
+    );
+
+const startSeason = newSubcommand()
+    .setName('start')
+    .setDescription('Starts a new season.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the season.')
+            .setRequired(true)
+    );
+
+const endSeason = newSubcommand()
+    .setName('end')
+    .setDescription('Ends the current season.');
 
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('season')
-        .setDescription('Manages the current season.')
-        .addSubcommand((command) =>
-            command
-                .setName('info')
-                .setDescription('Shows info about a season.')
-                .addStringOption((option) =>
-                    option.setName('name').setDescription('Name of the season.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('start')
-                .setDescription('Starts a new season.')
-                .addStringOption((option) =>
-                    option
-                        .setName('name')
-                        .setDescription('Name of the season.')
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand((command) =>
-            command.setName('end').setDescription('Ends the current season.')
-        ),
+    data: command
+        .addSubcommand(seasonInfo)
+        .addSubcommand(startSeason)
+        .addSubcommand(endSeason),
 
     async execute(interaction: ChatInputCommandInteraction) {
         switch (interaction.options.getSubcommand()) {

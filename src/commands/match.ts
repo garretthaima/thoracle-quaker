@@ -1,59 +1,59 @@
-import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-} from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand, newSubcommand } from '../types/Command';
 import { matchListFields } from '../utils/match';
 
+const command = newCommand()
+    .setName('match')
+    .setDescription('Manages logged matches.');
+
+const pendingMatches = newSubcommand()
+    .setName('pending')
+    .setDescription('Lists pending matches.');
+
+const disputedMatches = newSubcommand()
+    .setName('disputed')
+    .setDescription('Lists disputed matches.');
+
+const acceptMatch = newSubcommand()
+    .setName('accept')
+    .setDescription('Accepts a match.')
+    .addStringOption((option) =>
+        option
+            .setName('match')
+            .setDescription('Match to accept.')
+            .setRequired(true)
+    );
+
+const deleteMatch = newSubcommand()
+    .setName('delete')
+    .setDescription('Deletes a match.')
+    .addStringOption((option) =>
+        option
+            .setName('match')
+            .setDescription('Match to delete.')
+            .setRequired(true)
+    );
+
+const listMatches = newSubcommand()
+    .setName('list')
+    .setDescription('Displays your matches.')
+    .addStringOption((option) =>
+        option.setName('deck').setDescription('Filter by deck.')
+    )
+    .addStringOption((option) =>
+        option.setName('season').setDescription('Filter by season.')
+    );
+
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('match')
-        .setDescription('Manages logged matches.')
-        .addSubcommand((command) =>
-            command.setName('pending').setDescription('Lists pending matches.')
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('disputed')
-                .setDescription('Lists disputed matches.')
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('accept')
-                .setDescription('Accepts a match.')
-                .addStringOption((option) =>
-                    option
-                        .setName('match')
-                        .setDescription('Match to accept.')
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('delete')
-                .setDescription('Deletes a match.')
-                .addStringOption((option) =>
-                    option
-                        .setName('match')
-                        .setDescription('Match to delete.')
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('list')
-                .setDescription('Displays your matches.')
-                .addStringOption((option) =>
-                    option.setName('deck').setDescription('Filter by deck.')
-                )
-                .addStringOption((option) =>
-                    option.setName('season').setDescription('Filter by season.')
-                )
-        ),
+    data: command
+        .addSubcommand(pendingMatches)
+        .addSubcommand(disputedMatches)
+        .addSubcommand(acceptMatch)
+        .addSubcommand(deleteMatch)
+        .addSubcommand(listMatches),
 
     async execute(interaction: ChatInputCommandInteraction) {
         switch (interaction.options.getSubcommand()) {

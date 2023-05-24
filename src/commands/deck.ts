@@ -1,62 +1,60 @@
-import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-} from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 import { fetchConfig } from '../database/Config';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand, newSubcommand } from '../types/Command';
+
+const command = newCommand()
+    .setName('deck')
+    .setDescription('Manages your decks.');
+
+const createDeck = newSubcommand()
+    .setName('create')
+    .setDescription('Creates a new deck.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the deck.')
+            .setMaxLength(64)
+            .setRequired(true)
+    )
+    .addStringOption((option) =>
+        option
+            .setName('deck-list')
+            .setDescription('URL for the decklist.')
+            .setMaxLength(256)
+    );
+
+const listDecks = newSubcommand()
+    .setName('list')
+    .setDescription('Shows a list of your decks.');
+
+const useDeck = newSubcommand()
+    .setName('use')
+    .setDescription('Uses a saved deck.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the deck.')
+            .setRequired(true)
+    );
+
+const deckStats = newSubcommand()
+    .setName('stats')
+    .setDescription('Displays your deck statistics.')
+    .addStringOption((option) =>
+        option.setName('name').setDescription('Name of the deck.')
+    );
 
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('deck')
-        .setDescription('Manages your decks.')
-        .addSubcommand((command) =>
-            command
-                .setName('create')
-                .setDescription('Creates a new deck.')
-                .addStringOption((option) =>
-                    option
-                        .setName('name')
-                        .setDescription('Name of the deck.')
-                        .setMaxLength(64)
-                        .setRequired(true)
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName('deck-list')
-                        .setDescription('URL for the decklist.')
-                        .setMaxLength(256)
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('list')
-                .setDescription('Shows a list of your decks.')
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('use')
-                .setDescription('Uses a saved deck.')
-                .addStringOption((option) =>
-                    option
-                        .setName('name')
-                        .setDescription('Name of the deck.')
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('stats')
-                .setDescription('Displays your deck statistics.')
-                .addStringOption((option) =>
-                    option.setName('name').setDescription('Name of the deck.')
-                )
-        ),
+    data: command
+        .addSubcommand(createDeck)
+        .addSubcommand(listDecks)
+        .addSubcommand(useDeck)
+        .addSubcommand(deckStats),
 
     async execute(interaction: ChatInputCommandInteraction) {
         switch (interaction.options.getSubcommand()) {

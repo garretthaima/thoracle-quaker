@@ -3,75 +3,68 @@ import {
     ChatInputCommandInteraction,
     PermissionsBitField,
     Role,
-    SlashCommandBuilder,
     roleMention,
 } from 'discord.js';
 import { IConfig, fetchConfig } from '../database/Config';
-import { Command } from '../types/Command';
+import { Command, newCommand, newSubcommand } from '../types/Command';
+
+const command = newCommand()
+    .setName('config')
+    .setDescription('Manages the config.');
+
+const configMinimumGames = newSubcommand()
+    .setName('minimum-games')
+    .setDescription('Games required to be seen on the leaderboard.')
+    .addIntegerOption((option) =>
+        option.setName('amount').setDescription('Number of games.')
+    );
+
+const configPointsGained = newSubcommand()
+    .setName('points-gained')
+    .setDescription('Points gained after winning a match.')
+    .addIntegerOption((option) =>
+        option.setName('amount').setDescription('Number of points gained.')
+    );
+
+const configPointsLost = newSubcommand()
+    .setName('points-lost')
+    .setDescription('Points lost after losing a match.')
+    .addIntegerOption((option) =>
+        option.setName('amount').setDescription('Number of points lost.')
+    );
+
+const configBasePoints = newSubcommand()
+    .setName('base-points')
+    .setDescription('Points added to values when displayed.')
+    .addIntegerOption((option) =>
+        option.setName('amount').setDescription('Number of points added.')
+    );
+
+const configDeckLimit = newSubcommand()
+    .setName('deck-limit')
+    .setDescription('Maximum decks a player can have.')
+    .addIntegerOption((option) =>
+        option.setName('amount').setDescription('Number of decks.')
+    );
+
+const configDisputeRole = newSubcommand()
+    .setName('dispute-role')
+    .setDescription('Role added to dispute threads.')
+    .addRoleOption((option) =>
+        option.setName('role').setDescription('Dispute role.')
+    )
+    .addBooleanOption((option) =>
+        option.setName('unset').setDescription('Removes the dispute role.')
+    );
 
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('config')
-        .setDescription('Manages the config.')
-        .addSubcommand((command) =>
-            command
-                .setName('minimum-games')
-                .setDescription('Games required to be seen on the leaderboard.')
-                .addIntegerOption((option) =>
-                    option.setName('amount').setDescription('Number of games.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('points-gained')
-                .setDescription('Points gained after winning a match.')
-                .addIntegerOption((option) =>
-                    option
-                        .setName('amount')
-                        .setDescription('Number of points gained.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('points-lost')
-                .setDescription('Points lost after losing a match.')
-                .addIntegerOption((option) =>
-                    option
-                        .setName('amount')
-                        .setDescription('Number of points lost.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('base-points')
-                .setDescription('Points added to values when displayed.')
-                .addIntegerOption((option) =>
-                    option
-                        .setName('amount')
-                        .setDescription('Number of points added.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('deck-limit')
-                .setDescription('Maximum decks a player can have.')
-                .addIntegerOption((option) =>
-                    option.setName('amount').setDescription('Number of decks.')
-                )
-        )
-        .addSubcommand((command) =>
-            command
-                .setName('dispute-role')
-                .setDescription('Role added to dispute threads.')
-                .addRoleOption((option) =>
-                    option.setName('role').setDescription('Dispute role.')
-                )
-                .addBooleanOption((option) =>
-                    option
-                        .setName('unset')
-                        .setDescription('Removes the dispute role.')
-                )
-        )
+    data: command
+        .addSubcommand(configMinimumGames)
+        .addSubcommand(configPointsGained)
+        .addSubcommand(configPointsLost)
+        .addSubcommand(configBasePoints)
+        .addSubcommand(configDeckLimit)
+        .addSubcommand(configDisputeRole)
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     async execute(interaction: ChatInputCommandInteraction) {

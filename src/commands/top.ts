@@ -1,20 +1,18 @@
-import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-} from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { fetchConfig } from '../database/Config';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand } from '../types/Command';
 import { leaderboardFields } from '../utils/leaderboard';
 
+const command = newCommand()
+    .setName('top')
+    .setDescription('Displays the season leaderboard.')
+    .addStringOption((option) =>
+        option.setName('season').setDescription('Name of the season.')
+    );
+
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('top')
-        .setDescription('Displays the season leaderboard.')
-        .addStringOption((option) =>
-            option.setName('season').setDescription('Name of the season.')
-        ),
+    data: command,
 
     async execute(interaction: ChatInputCommandInteraction) {
         const name = interaction.options.getString('season');

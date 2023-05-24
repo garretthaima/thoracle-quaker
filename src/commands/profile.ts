@@ -1,7 +1,6 @@
 import {
     ChatInputCommandInteraction,
     EmbedBuilder,
-    SlashCommandBuilder,
     userMention,
 } from 'discord.js';
 import { fetchConfig } from '../database/Config';
@@ -9,12 +8,14 @@ import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { IProfile, fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
-import { Command } from '../types/Command';
+import { Command, newCommand } from '../types/Command';
+
+const command = newCommand()
+    .setName('profile')
+    .setDescription('Displays your profile information.');
 
 export = <Command>{
-    data: new SlashCommandBuilder()
-        .setName('profile')
-        .setDescription('Displays your profile information.'),
+    data: command,
 
     async execute(interaction: ChatInputCommandInteraction) {
         const profile: IProfile = await fetchProfile(
