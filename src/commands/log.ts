@@ -133,10 +133,11 @@ export = <Command>{
         const message = await interaction.fetchReply();
 
         await Match.create({
-            season: season._id,
+            guildId: interaction.guildId!,
             channelId: interaction.channelId,
             messageId: message.id,
             winnerUserId: interaction.user.id,
+            season: season._id,
             players: profiles.map((profile) => ({
                 userId: profile._id,
                 deck: profile.currentDeck,

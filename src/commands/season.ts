@@ -144,7 +144,7 @@ async function handleStart(
         }
     }
 
-    await Season.create({ name });
+    await Season.create({ guildId: interaction.guildId!, name });
 
     await interaction.reply({
         content: 'The season has been started.',
