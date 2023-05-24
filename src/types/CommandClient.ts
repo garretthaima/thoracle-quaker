@@ -10,8 +10,15 @@ export class CommandClient extends Client {
 
         this.commands = new Collection();
 
-        this.on('interactionCreate', async (interaction) => {
+        this.on('interactionCreate', async (interaction): Promise<any> => {
             if (!interaction.isChatInputCommand()) return;
+
+            if (!interaction.guildId) {
+                return await interaction.reply({
+                    content: 'This command cannot be run in direct messages.',
+                    ephemeral: true,
+                });
+            }
 
             const command = this.commands.get(interaction.commandName);
 

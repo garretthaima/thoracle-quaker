@@ -7,7 +7,7 @@ import {
 import { fetchConfig } from '../database/Config';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
-import { IProfile, Profile } from '../database/Profile';
+import { fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
@@ -59,13 +59,6 @@ export = <Command>{
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        if (!interaction.guildId) {
-            return await interaction.reply({
-                content: 'This command cannot be run in direct messages.',
-                ephemeral: true,
-            });
-        }
-
         switch (interaction.options.getSubcommand()) {
             case 'create':
                 await handleCreate(
@@ -162,11 +155,9 @@ async function handleCreate(
         deckList: deckList || undefined,
     });
 
-    await Profile.findOneAndUpdate(
-        { _id: interaction.user.id, guildId: interaction.guildId! },
-        { $set: { currentDeck: deck._id } },
-        { upsert: true }
-    );
+    await fetchProfile(interaction.guildId!, interaction.user.id, {
+        $set: { currentDeck: deck._id },
+    });
 
     await interaction.reply({
         content: 'The deck has been created and set as current.',
@@ -222,11 +213,9 @@ async function handleUse(
         });
     }
 
-    await Profile.findOneAndUpdate(
-        { _id: interaction.user.id, guildId: interaction.guildId! },
-        { $set: { currentDeck: deck._id } },
-        { upsert: true }
-    );
+    await fetchProfile(interaction.guildId!, interaction.user.id, {
+        $set: { currentDeck: deck._id },
+    });
 
     await interaction.reply({
         content: 'The deck has been set as current.',
@@ -238,10 +227,9 @@ async function handleStats(
     interaction: ChatInputCommandInteraction,
     name: string | null
 ) {
-    const profile: IProfile = await Profile.findOneAndUpdate(
-        { _id: interaction.user.id, guildId: interaction.guildId! },
-        {},
-        { new: true, upsert: true }
+    const profile = await fetchProfile(
+        interaction.guildId!,
+        interaction.user.id
     );
 
     const deck: IDeck | null =

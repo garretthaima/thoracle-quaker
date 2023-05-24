@@ -7,7 +7,7 @@ import {
 import { fetchConfig } from '../database/Config';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
-import { IProfile, Profile } from '../database/Profile';
+import { IProfile, fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
@@ -17,14 +17,11 @@ export = <Command>{
         .setDescription('Displays your profile information.'),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        // User profile
-        const profile: IProfile = await Profile.findOneAndUpdate(
-            { _id: interaction.user.id, guildId: interaction.guildId! },
-            {},
-            { new: true, upsert: true }
+        const profile: IProfile = await fetchProfile(
+            interaction.guildId!,
+            interaction.user.id
         );
 
-        // Create embed
         const embed = new EmbedBuilder()
             .setTitle('Profile Information')
             .setThumbnail(interaction.user.displayAvatarURL())
@@ -35,7 +32,6 @@ export = <Command>{
             )
             .setColor('Blue');
 
-        // Current deck
         const deck: IDeck | null = profile.currentDeck
             ? await Deck.findOne({ _id: profile.currentDeck })
             : null;
@@ -48,7 +44,6 @@ export = <Command>{
 
         embed.addFields({ name: 'Current Deck', value: deckText });
 
-        // Match statistics
         const matches: IMatch[] = await Match.find({
             guildId: interaction.guildId!,
             'players.userId': interaction.user.id,
@@ -77,7 +72,6 @@ export = <Command>{
             (wins / (matches.length || 1)) * 100
         )}% winrate`;
 
-        // Season statistics
         const season: ISeason | null = await Season.findOne({
             guildId: interaction.guildId!,
             endDate: { $exists: false },

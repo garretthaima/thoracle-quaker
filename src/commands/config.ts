@@ -75,13 +75,6 @@ export = <Command>{
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        if (!interaction.guildId) {
-            return await interaction.reply({
-                content: 'This command cannot be run in direct messages.',
-                ephemeral: true,
-            });
-        }
-
         switch (interaction.options.getSubcommand()) {
             case 'minimum-games':
                 await handleMinimumGames(

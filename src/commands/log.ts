@@ -10,7 +10,7 @@ import {
 } from 'discord.js';
 import { Deck, IDeck } from '../database/Deck';
 import { Match } from '../database/Match';
-import { IProfile, Profile } from '../database/Profile';
+import { fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
 import { Command } from '../types/Command';
 
@@ -65,11 +65,7 @@ export = <Command>{
         }
 
         const profilePromises = playerIds.map((userId) =>
-            Profile.findOneAndUpdate<IProfile>(
-                { _id: userId, guildId: interaction.guildId! },
-                {},
-                { new: true, upsert: true }
-            )
+            fetchProfile(interaction.guildId!, userId)
         );
         const profiles = await Promise.all(profilePromises);
 
