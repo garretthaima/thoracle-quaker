@@ -167,7 +167,7 @@ async function handleList(interaction: ChatInputCommandInteraction) {
     const decks: IDeck[] = await Deck.find({
         guildId: interaction.guildId!,
         userId: interaction.user.id,
-    });
+    }).sort('-createdAt');
 
     if (!decks.length) {
         return await interaction.reply({
