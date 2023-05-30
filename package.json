@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "The Playing With Power patreon Discord server's bot.",
     "author": "Rigidity",
+    "license": "MIT",
     "main": "dist/index.js",
     "scripts": {
         "build": "tsc",

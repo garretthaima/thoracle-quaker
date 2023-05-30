@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema, UpdateQuery } from 'mongoose';
+import { Document, Schema, UpdateQuery } from 'mongoose';
+import { connection } from '../database';
 
 export interface IConfig extends Document {
     guildId: string;
@@ -20,7 +21,7 @@ const configSchema = new Schema({
     disputeRoleId: String,
 });
 
-export const Config = mongoose.model('Config', configSchema);
+export const Config = connection.model('Config', configSchema);
 
 export async function fetchConfig(
     guildId: string,

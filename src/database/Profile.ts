@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema, Types, UpdateQuery } from 'mongoose';
+import { Document, Schema, Types, UpdateQuery } from 'mongoose';
+import { connection } from '../database';
 
 export interface IProfile extends Document {
     guildId: string;
@@ -13,7 +14,7 @@ const profileSchema = new Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-export const Profile = mongoose.model('Profile', profileSchema);
+export const Profile = connection.model('Profile', profileSchema);
 
 export async function fetchProfile(
     guildId: string,

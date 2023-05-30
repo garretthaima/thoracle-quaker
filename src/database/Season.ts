@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { Document, Schema } from 'mongoose';
+import { connection } from '../database';
 
 export interface ISeason extends Document {
     guildId: string;
@@ -14,4 +15,4 @@ const seasonSchema = new Schema({
     endDate: Date,
 });
 
-export const Season = mongoose.model('Season', seasonSchema);
+export const Season = connection.model('Season', seasonSchema);

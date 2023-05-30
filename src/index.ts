@@ -1,15 +1,11 @@
 import { IntentsBitField, REST, Routes } from 'discord.js';
 import fs from 'fs';
-import mongoose from 'mongoose';
 import path from 'path';
 import sourceMaps from 'source-map-support';
-import { CLIENT_ID, DATABASE, GUILD_ID, TOKEN } from './env';
+import { CLIENT_ID, GUILD_ID, TOKEN } from './env';
 import { CommandClient } from './types/CommandClient';
 
 sourceMaps.install();
-
-// Connect the database
-mongoose.connect(DATABASE);
 
 // Initialize Discord API client
 export const client = new CommandClient({

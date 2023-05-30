@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Document, Schema, Types } from 'mongoose';
+import { connection } from '../database';
 
 export interface IMatch extends Document {
     guildId: string;
@@ -36,4 +37,4 @@ const matchSchema = new Schema({
     confirmedAt: Date,
 });
 
-export const Match = mongoose.model('Match', matchSchema);
+export const Match = connection.model('Match', matchSchema);

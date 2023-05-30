@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { Document, Schema } from 'mongoose';
+import { connection } from '../database';
 
 export interface IDeck extends Document {
     guildId: string;
@@ -16,4 +17,4 @@ const deckSchema = new Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-export const Deck = mongoose.model('Deck', deckSchema);
+export const Deck = connection.model('Deck', deckSchema);
