@@ -209,7 +209,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                     {
                         guildId: old._server,
                         userId: old._mentionValue,
-                        name: old._currentDeck.replace(/\| Rogue$/, ''),
+                        name: old._currentDeck.replace(/\\s| Rogue$/, ''),
                     },
                     {},
                     { upsert: true, new: true }
