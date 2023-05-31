@@ -1,8 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
-import { DATABASE_URI, MIGRATION_DATABASE } from './env';
+import { DATABASE_URI, MIGRATION_DATABASE_URI } from './env';
 
 export const connection = mongoose.createConnection(DATABASE_URI);
-export const migrationConnection = connection.useDb(MIGRATION_DATABASE);
+export const migrationConnection = mongoose.createConnection(
+    MIGRATION_DATABASE_URI
+);
 
 const schema = new Schema({}, { strict: false });
 
