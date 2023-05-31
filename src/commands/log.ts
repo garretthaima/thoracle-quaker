@@ -85,7 +85,7 @@ export = <Command>{
             .setColor('Blue');
 
         const playerText = profiles
-            .map((profile) => userMention(profile._id))
+            .map((profile) => userMention(profile.userId))
             .join('\n');
 
         const deckText = decks
@@ -139,7 +139,7 @@ export = <Command>{
             winnerUserId: interaction.user.id,
             season: season._id,
             players: profiles.map((profile) => ({
-                userId: profile._id,
+                userId: profile.userId,
                 deck: profile.currentDeck,
             })),
         });

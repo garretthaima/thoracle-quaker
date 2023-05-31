@@ -3,11 +3,14 @@
     "version": "1.0.0",
     "description": "The Playing With Power patreon Discord server's bot.",
     "author": "Rigidity",
+    "license": "MIT",
     "main": "dist/index.js",
     "scripts": {
         "build": "tsc",
         "start": "node .",
-        "dev": "tsc && node ."
+        "dev": "tsc && node .",
+        "register": "node dist/scripts/register.js",
+        "register-dev": "tsc && node dist/scripts/register-dev.js"
     },
     "devDependencies": {
         "@types/source-map-support": "^0.5.6",

@@ -14,10 +14,13 @@ export async function matchListFields(
         matches.map(async (match) => {
             const name = `Match (${match._id})`;
 
-            const loggedAtText = `Logged at ${messageLink(
-                match.channelId,
-                match.messageId
-            )}`;
+            const loggedAtText =
+                match.channelId && match.messageId
+                    ? `Logged at ${messageLink(
+                          match.channelId,
+                          match.messageId
+                      )}`
+                    : 'Has been logged';
 
             const disputedAtText = match.disputeThreadId
                 ? `\nDisputed at ${channelLink(match.disputeThreadId)}`

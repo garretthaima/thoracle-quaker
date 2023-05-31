@@ -46,6 +46,8 @@ export async function handleConfirmMatch(
         });
     }
 
+    if (!match.channelId || !match.messageId) return;
+
     const channel = client.channels.cache.get(match.channelId);
 
     if (channel?.isTextBased()) {
@@ -95,6 +97,20 @@ export async function handleDisputeMatch(
             content: `This match has already been disputed in ${channelMention(
                 match.disputeThreadId
             )}.`,
+            ephemeral: true,
+        });
+    }
+
+    if (!match.channelId) {
+        return await interaction.reply({
+            content: 'There is no channel for that match.',
+            ephemeral: true,
+        });
+    }
+
+    if (!match.messageId) {
+        return await interaction.reply({
+            content: 'There is no message for that match.',
             ephemeral: true,
         });
     }
@@ -165,9 +181,11 @@ export async function handleCancelMatch(
     if (interaction.user.id === match.winnerUserId) {
         await match.deleteOne();
 
-        const channel = client.channels.cache.get(match.channelId);
+        const channel = match.channelId
+            ? client.channels.cache.get(match.channelId)
+            : undefined;
 
-        if (channel?.isTextBased()) {
+        if (channel?.isTextBased() && match.messageId) {
             channel.messages.delete(match.messageId).catch(() => null);
         }
 
