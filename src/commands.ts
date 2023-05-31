@@ -4,7 +4,7 @@ import path from 'path';
 import { CLIENT_ID, GUILD_ID, TOKEN } from './env';
 import { Command } from './types/Command';
 
-const commands = new Collection<string, Command>();
+export const commands = new Collection<string, Command>();
 
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs

@@ -113,7 +113,7 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
         guildId: interaction.guildId!,
         season: season._id,
         'players.confirmed': false,
-    }).sort('createdAt');
+    }).sort({ _id: 1 });
 
     if (!matches.length) {
         return await interaction.reply({
@@ -161,7 +161,7 @@ async function handleDisputed(interaction: ChatInputCommandInteraction) {
         season: season._id,
         'players.confirmed': false,
         disputeThreadId: { $exists: true },
-    }).sort('createdAt');
+    }).sort({ _id: 1 });
 
     if (!matches.length) {
         return await interaction.reply({
@@ -317,7 +317,7 @@ async function handleList(
             },
         },
         'players.userId': interaction.user.id,
-    }).sort('-createdAt');
+    }).sort({ _id: -1 });
 
     const constraintsText =
         deckName || seasonName ? ' with those constraints' : '';

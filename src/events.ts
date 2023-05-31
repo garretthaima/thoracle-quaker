@@ -1,4 +1,5 @@
-import { ButtonInteraction } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction } from 'discord.js';
+import { commands } from './commands';
 import { IMatch, Match } from './database/Match';
 import {
     handleCancelMatch,
@@ -14,11 +15,29 @@ client.once('ready', () => {
 
 client.on('interactionCreate', async (interaction) => {
     try {
-        if (interaction.isButton()) await handleButton(interaction);
+        if (interaction.isChatInputCommand()) {
+            await handleChatInputCommand(interaction);
+        } else if (interaction.isButton()) {
+            await handleButton(interaction);
+        }
     } catch (error) {
         handleError(error, interaction);
     }
 });
+
+async function handleChatInputCommand(
+    interaction: ChatInputCommandInteraction
+) {
+    if (!interaction.guildId) {
+        return await interaction.reply({
+            content: 'This command cannot be run in direct messages.',
+            ephemeral: true,
+        });
+    }
+
+    const command = commands.get(interaction.commandName);
+    await command?.execute(interaction);
+}
 
 async function handleButton(interaction: ButtonInteraction) {
     if (!interaction.guildId) return;

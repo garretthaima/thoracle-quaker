@@ -1,12 +1,11 @@
-import { IntentsBitField } from 'discord.js';
+import { Client, IntentsBitField } from 'discord.js';
 import sourceMaps from 'source-map-support';
 import { TOKEN } from './env';
-import { CommandClient } from './types/CommandClient';
 
 sourceMaps.install();
 
 // Initialize Discord API client
-export const client = new CommandClient({
+export const client = new Client({
     intents: [IntentsBitField.Flags.Guilds],
 });
 
