@@ -103,7 +103,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                         ? undefined
                         : oldDecks.find(
                               (deck) => old._player1Deck === deck._name
-                          )?._link,
+                          )?._link ?? undefined,
             },
             {},
             { upsert: true, new: true }
@@ -122,7 +122,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                         ? undefined
                         : oldDecks.find(
                               (deck) => old._player2Deck === deck._name
-                          )?._link,
+                          )?._link ?? undefined,
             },
             {},
             { upsert: true, new: true }
@@ -141,7 +141,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                         ? undefined
                         : oldDecks.find(
                               (deck) => old._player3Deck === deck._name
-                          )?._link,
+                          )?._link ?? undefined,
             },
             {},
             { upsert: true, new: true }
@@ -160,7 +160,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                         ? undefined
                         : oldDecks.find(
                               (deck) => old._player4Deck === deck._name
-                          )?._link,
+                          )?._link ?? undefined,
             },
             {},
             { upsert: true, new: true }
