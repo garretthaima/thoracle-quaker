@@ -4,6 +4,7 @@
         "target": "ESNext",
         "module": "CommonJS",
         "outDir": "dist",
+        "incremental": true,
         "downlevelIteration": true,
         "esModuleInterop": true,
         "noImplicitAny": true,
