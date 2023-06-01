@@ -5,7 +5,7 @@ import { Command, newCommand } from '../types/Command';
 import { leaderboardFields } from '../utils/leaderboard';
 
 const command = newCommand()
-    .setName('top')
+    .setName('leaderboard')
     .setDescription('Displays the season leaderboard.')
     .addStringOption((option) =>
         option.setName('season').setDescription('Name of the season.')

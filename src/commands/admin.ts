@@ -83,6 +83,8 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
     }
 
     for (const old of oldMatches) {
+        if (old._Status === 'CLOSED') continue;
+
         const season: ISeason | null = await Season.findOne({
             guildId: old._server,
             name: old._season,
