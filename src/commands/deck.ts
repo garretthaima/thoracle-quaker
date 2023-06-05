@@ -6,6 +6,7 @@ import { IMatch, Match } from '../database/Match';
 import { fetchProfile } from '../database/Profile';
 import { ISeason, Season } from '../database/Season';
 import { Command, newCommand, newSubcommand } from '../types/Command';
+import { validHosts, validateDeckList } from '../utils/validation';
 
 const command = newCommand()
     .setName('deck')
@@ -34,7 +35,7 @@ const listDecks = newSubcommand()
 
 const useDeck = newSubcommand()
     .setName('use')
-    .setDescription('Uses a saved deck.')
+    .setDescription('Sets a deck as current.')
     .addStringOption((option) =>
         option
             .setName('name')
@@ -42,9 +43,53 @@ const useDeck = newSubcommand()
             .setRequired(true)
     );
 
+const deleteDeck = newSubcommand()
+    .setName('delete')
+    .setDescription('Deletes a deck.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the deck.')
+            .setRequired(true)
+    );
+
+const renameDeck = newSubcommand()
+    .setName('rename')
+    .setDescription('Renames a deck.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the deck.')
+            .setRequired(true)
+    )
+    .addStringOption((option) =>
+        option
+            .setName('new-name')
+            .setDescription('New name of the deck.')
+            .setMaxLength(64)
+            .setRequired(true)
+    );
+
+const setDeckList = newSubcommand()
+    .setName('set-list')
+    .setDescription('Sets the deck list URL.')
+    .addStringOption((option) =>
+        option
+            .setName('name')
+            .setDescription('Name of the deck.')
+            .setRequired(true)
+    )
+    .addStringOption((option) =>
+        option
+            .setName('new-deck-list')
+            .setDescription('New URL of the deck list.')
+            .setMaxLength(256)
+            .setRequired(true)
+    );
+
 const deckStats = newSubcommand()
     .setName('stats')
-    .setDescription('Displays your deck statistics.')
+    .setDescription('Shows your deck statistics.')
     .addStringOption((option) =>
         option.setName('name').setDescription('Name of the deck.')
     );
@@ -54,6 +99,9 @@ export = <Command>{
         .addSubcommand(createDeck)
         .addSubcommand(listDecks)
         .addSubcommand(useDeck)
+        .addSubcommand(deleteDeck)
+        .addSubcommand(renameDeck)
+        .addSubcommand(setDeckList)
         .addSubcommand(deckStats),
 
     async execute(interaction: ChatInputCommandInteraction) {
@@ -74,6 +122,29 @@ export = <Command>{
                 await handleUse(
                     interaction,
                     interaction.options.getString('name', true)
+                );
+                break;
+
+            case 'delete':
+                await handleDelete(
+                    interaction,
+                    interaction.options.getString('name', true)
+                );
+                break;
+
+            case 'rename':
+                await handleRename(
+                    interaction,
+                    interaction.options.getString('name', true),
+                    interaction.options.getString('new-name', true)
+                );
+                break;
+
+            case 'set-list':
+                await handleSetList(
+                    interaction,
+                    interaction.options.getString('name', true),
+                    interaction.options.getString('new-deck-list', true)
                 );
                 break;
 
@@ -120,21 +191,7 @@ async function handleCreate(
     }
 
     if (deckList) {
-        const hostname = new URL(deckList).hostname
-            .replace(/^www\./, '')
-            .toLowerCase();
-
-        const validHosts = [
-            'tappedout.net',
-            'deckstats.net',
-            'aetherhub.com',
-            'moxfield.com',
-            'tcgplayer.com',
-            'archidekt.com',
-            'scryfall.com',
-        ];
-
-        if (!validHosts.includes(hostname)) {
+        if (!validateDeckList(deckList)) {
             const hostText = validHosts
                 .map((host) => '`' + host + '`')
                 .join(', ');
@@ -150,7 +207,7 @@ async function handleCreate(
         guildId: interaction.guildId!,
         userId: interaction.user.id,
         name,
-        deckList: deckList || undefined,
+        ...(deckList ? { deckList } : {}),
     });
 
     await fetchProfile(interaction.guildId!, interaction.user.id, {
@@ -221,6 +278,124 @@ async function handleUse(
     });
 }
 
+async function handleDelete(
+    interaction: ChatInputCommandInteraction,
+    name: string
+) {
+    const deck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+        name,
+    });
+
+    if (!deck) {
+        return await interaction.reply({
+            content: 'You do not have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    await Match.updateMany(
+        { 'players.deck': deck._id },
+        { $unset: { 'players.$.deck': '' } }
+    );
+
+    const profile = await fetchProfile(
+        interaction.guildId!,
+        interaction.user.id
+    );
+
+    if (profile.currentDeck?.equals(deck._id)) {
+        profile.currentDeck = undefined;
+        await profile.save();
+    }
+
+    await deck.deleteOne();
+
+    await interaction.reply({
+        content: 'The deck has been deleted.',
+        ephemeral: true,
+    });
+}
+
+async function handleRename(
+    interaction: ChatInputCommandInteraction,
+    name: string,
+    newName: string
+) {
+    const deck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+        name,
+    });
+
+    if (!deck) {
+        return await interaction.reply({
+            content: 'You do not have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    const existingDeck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+        name: newName,
+    });
+
+    if (existingDeck) {
+        return await interaction.reply({
+            content: 'You already have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    deck.name = newName;
+
+    await deck.save();
+
+    await interaction.reply({
+        content: 'The deck has been renamed.',
+        ephemeral: true,
+    });
+}
+
+async function handleSetList(
+    interaction: ChatInputCommandInteraction,
+    name: string,
+    newDeckList: string
+) {
+    const deck: IDeck | null = await Deck.findOne({
+        guildId: interaction.guildId!,
+        userId: interaction.user.id,
+        name,
+    });
+
+    if (!deck) {
+        return await interaction.reply({
+            content: 'You do not have a deck with that name.',
+            ephemeral: true,
+        });
+    }
+
+    if (!validateDeckList(newDeckList)) {
+        const hostText = validHosts.map((host) => '`' + host + '`').join(', ');
+
+        return await interaction.reply({
+            content: `The deck list must be from one of the following websites: ${hostText}.`,
+            ephemeral: true,
+        });
+    }
+
+    deck.deckList = newDeckList;
+
+    await deck.save();
+
+    await interaction.reply({
+        content: 'The deck list has been set.',
+        ephemeral: true,
+    });
+}
+
 async function handleStats(
     interaction: ChatInputCommandInteraction,
     name: string | null
@@ -255,7 +430,9 @@ async function handleStats(
         .setTitle(`Deck Statistics - ${deck.name}`)
         .setThumbnail(interaction.user.displayAvatarURL())
         .setDescription(
-            `This is the statistics for [${deck.name}](${deck.deckList}), both overall and for this season.`
+            `This is the statistics for ${
+                deck.deckList ? `[${deck.name}](${deck.deckList})` : deck.name
+            }, both overall and for this season.`
         )
         .setColor('Blue');
 

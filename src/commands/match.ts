@@ -309,14 +309,13 @@ async function handleList(
 
     const matches: IMatch[] = await Match.find({
         guildId: interaction.guildId!,
+        ...(season ? { season: season._id } : {}),
         players: {
             $elemMatch: {
                 userId: interaction.user.id,
-                deck: deck?._id ?? undefined,
-                season: season?._id ?? undefined,
+                ...(deck ? { deck: deck._id } : {}),
             },
         },
-        'players.userId': interaction.user.id,
     }).sort({ _id: -1 });
 
     const constraintsText =

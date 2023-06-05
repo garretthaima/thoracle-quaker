@@ -75,10 +75,9 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
             guildId: old._server,
             name: old._season_name,
             startDate: new Date(old._season_start),
-            endDate:
-                old._season_end === 'Not Specified'
-                    ? undefined
-                    : new Date(old._season_end),
+            ...(old._season_end === 'Not Specified'
+                ? {}
+                : { endDate: new Date(old._season_end) }),
         });
     }
 
@@ -92,6 +91,30 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
 
         if (!season) continue;
 
+        const deckList1 =
+            old.player1Deck === 'Rogue'
+                ? undefined
+                : oldDecks.find((deck) => old._player1Deck === deck._name)
+                      ?._link ?? undefined;
+
+        const deckList2 =
+            old.player2Deck === 'Rogue'
+                ? undefined
+                : oldDecks.find((deck) => old._player2Deck === deck._name)
+                      ?._link ?? undefined;
+
+        const deckList3 =
+            old.player3Deck === 'Rogue'
+                ? undefined
+                : oldDecks.find((deck) => old._player3Deck === deck._name)
+                      ?._link ?? undefined;
+
+        const deckList4 =
+            old.player4Deck === 'Rogue'
+                ? undefined
+                : oldDecks.find((deck) => old._player4Deck === deck._name)
+                      ?._link ?? undefined;
+
         const deck1: IDeck = await Deck.findOneAndUpdate(
             {
                 guildId: old._server,
@@ -100,12 +123,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                     old._player1Deck === 'Rogue'
                         ? old._player1Rogue
                         : old._player1Deck,
-                deckList:
-                    old.player1Deck === 'Rogue'
-                        ? undefined
-                        : oldDecks.find(
-                              (deck) => old._player1Deck === deck._name
-                          )?._link ?? undefined,
+                ...(deckList1 ? { deckList: deckList1 } : {}),
             },
             {},
             { upsert: true, new: true }
@@ -119,12 +137,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                     old._player2Deck === 'Rogue'
                         ? old._player2Rogue
                         : old._player2Deck,
-                deckList:
-                    old.player2Deck === 'Rogue'
-                        ? undefined
-                        : oldDecks.find(
-                              (deck) => old._player2Deck === deck._name
-                          )?._link ?? undefined,
+                ...(deckList2 ? { deckList: deckList2 } : {}),
             },
             {},
             { upsert: true, new: true }
@@ -138,12 +151,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                     old._player3Deck === 'Rogue'
                         ? old._player3Rogue
                         : old._player3Deck,
-                deckList:
-                    old.player3Deck === 'Rogue'
-                        ? undefined
-                        : oldDecks.find(
-                              (deck) => old._player3Deck === deck._name
-                          )?._link ?? undefined,
+                ...(deckList3 ? { deckList: deckList3 } : {}),
             },
             {},
             { upsert: true, new: true }
@@ -157,12 +165,7 @@ async function handleMigrate(interaction: ChatInputCommandInteraction) {
                     old._player4Deck === 'Rogue'
                         ? old._player4Rogue
                         : old._player4Deck,
-                deckList:
-                    old.player4Deck === 'Rogue'
-                        ? undefined
-                        : oldDecks.find(
-                              (deck) => old._player4Deck === deck._name
-                          )?._link ?? undefined,
+                ...(deckList4 ? { deckList: deckList4 } : {}),
             },
             {},
             { upsert: true, new: true }

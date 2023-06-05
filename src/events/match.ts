@@ -178,23 +178,28 @@ export async function handleCancelMatch(
     interaction: ButtonInteraction,
     match: IMatch
 ) {
-    if (interaction.user.id === match.winnerUserId) {
-        await match.deleteOne();
-
-        const channel = match.channelId
-            ? client.channels.cache.get(match.channelId)
-            : undefined;
-
-        if (channel?.isTextBased() && match.messageId) {
-            channel.messages.delete(match.messageId).catch(() => null);
-        }
-
-        const disputeChannel = match.disputeThreadId
-            ? client.channels.cache.get(match.disputeThreadId)
-            : undefined;
-
-        await disputeChannel?.delete();
+    if (interaction.user.id !== match.winnerUserId) {
+        return await interaction.reply({
+            content: 'You did not log this match.',
+            ephemeral: true,
+        });
     }
+
+    await match.deleteOne();
+
+    const channel = match.channelId
+        ? client.channels.cache.get(match.channelId)
+        : undefined;
+
+    if (channel?.isTextBased() && match.messageId) {
+        channel.messages.delete(match.messageId).catch(() => null);
+    }
+
+    const disputeChannel = match.disputeThreadId
+        ? client.channels.cache.get(match.disputeThreadId)
+        : undefined;
+
+    await disputeChannel?.delete();
 
     await interaction.reply({
         content: 'The match has been cancelled.',

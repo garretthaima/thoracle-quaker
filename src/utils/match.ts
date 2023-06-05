@@ -38,7 +38,7 @@ export async function matchListFields(
                         });
 
                         if (deck) {
-                            deckText = ` ( ${
+                            deckText = ` (${
                                 deck.deckList
                                     ? `[${deck.name}](${deck.deckList})`
                                     : deck.name
