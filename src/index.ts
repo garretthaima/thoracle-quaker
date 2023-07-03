@@ -6,7 +6,7 @@ sourceMaps.install();
 
 // Initialize Discord API client
 export const client = new Client({
-    intents: [IntentsBitField.Flags.Guilds],
+    intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMembers],
 });
 
 // Register events

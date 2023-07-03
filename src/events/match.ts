@@ -157,8 +157,10 @@ export async function handleDisputeMatch(
             .fetch(config.disputeRoleId)
             .catch(() => null);
 
-        for (const userId of role?.members?.keys() ?? []) {
-            await thread.members.add(userId).catch(() => null);
+        if (role) {
+            for (const userId of role.members.keys() ?? []) {
+                await thread.members.add(userId).catch(() => null);
+            }
         }
     }
 
