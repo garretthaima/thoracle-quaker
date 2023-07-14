@@ -1,20 +1,9 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Types } from 'mongoose';
 import { registerGlobalCommands, registerGuildCommands } from '../commands';
-import { OldConfig, OldDeck, OldMatch, OldSeason, OldUser } from '../database';
-import { Config } from '../database/Config';
-import { Deck, IDeck } from '../database/Deck';
-import { Match } from '../database/Match';
-import { Profile } from '../database/Profile';
-import { ISeason, Season } from '../database/Season';
 import { ADMIN_USER_IDS } from '../env';
 import { Command, newCommand, newSubcommand } from '../types/Command';
 
 const command = newCommand().setName('admin').setDescription('Admin commands.');
-
-const adminMigrate = newSubcommand()
-    .setName('migrate')
-    .setDescription('Migrates old data.');
 
 const adminUpdate = newSubcommand()
     .setName('update')
@@ -27,7 +16,7 @@ const adminUpdate = newSubcommand()
     );
 
 export = <Command>{
-    data: command.addSubcommand(adminMigrate).addSubcommand(adminUpdate),
+    data: command.addSubcommand(adminUpdate),
 
     async execute(interaction: ChatInputCommandInteraction) {
         if (!ADMIN_USER_IDS.includes(interaction.user.id)) {
@@ -38,10 +27,6 @@ export = <Command>{
         }
 
         switch (interaction.options.getSubcommand()) {
-            case 'migrate':
-                await handleMigrate(interaction);
-                break;
-
             case 'update':
                 await handleUpdate(
                     interaction,
@@ -51,187 +36,6 @@ export = <Command>{
         }
     },
 };
-
-async function handleMigrate(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
-
-    const oldConfigs = await OldConfig.find({});
-    const oldMatches = await OldMatch.find({});
-    const oldSeasons = await OldSeason.find({});
-    const oldUsers = await OldUser.find({});
-    const oldDecks = await OldDeck.find({});
-
-    for (const old of oldConfigs) {
-        await Config.create({
-            guildId: old._server,
-            minimumGamesPerPlayer: old._player_threshold,
-            pointsGained: old._points_gained,
-            pointsLost: old._points_lost,
-        });
-    }
-
-    for (const old of oldSeasons) {
-        await Season.create({
-            guildId: old._server,
-            name: old._season_name,
-            startDate: new Date(old._season_start),
-            ...(old._season_end === 'Not Specified'
-                ? {}
-                : { endDate: new Date(old._season_end) }),
-        });
-    }
-
-    for (const old of oldMatches) {
-        if (old._Status === 'CLOSED') continue;
-
-        const season: ISeason | null = await Season.findOne({
-            guildId: old._server,
-            name: old._season,
-        });
-
-        if (!season) continue;
-
-        const deckList1 =
-            old.player1Deck === 'Rogue'
-                ? undefined
-                : oldDecks.find((deck) => old._player1Deck === deck._name)
-                      ?._link ?? undefined;
-
-        const deckList2 =
-            old.player2Deck === 'Rogue'
-                ? undefined
-                : oldDecks.find((deck) => old._player2Deck === deck._name)
-                      ?._link ?? undefined;
-
-        const deckList3 =
-            old.player3Deck === 'Rogue'
-                ? undefined
-                : oldDecks.find((deck) => old._player3Deck === deck._name)
-                      ?._link ?? undefined;
-
-        const deckList4 =
-            old.player4Deck === 'Rogue'
-                ? undefined
-                : oldDecks.find((deck) => old._player4Deck === deck._name)
-                      ?._link ?? undefined;
-
-        const deck1: IDeck = await Deck.findOneAndUpdate(
-            {
-                guildId: old._server,
-                userId: old._player1,
-                name:
-                    old._player1Deck === 'Rogue'
-                        ? old._player1Rogue
-                        : old._player1Deck,
-                ...(deckList1 ? { deckList: deckList1 } : {}),
-            },
-            {},
-            { upsert: true, new: true }
-        );
-
-        const deck2: IDeck = await Deck.findOneAndUpdate(
-            {
-                guildId: old._server,
-                userId: old._player2,
-                name:
-                    old._player2Deck === 'Rogue'
-                        ? old._player2Rogue
-                        : old._player2Deck,
-                ...(deckList2 ? { deckList: deckList2 } : {}),
-            },
-            {},
-            { upsert: true, new: true }
-        );
-
-        const deck3: IDeck = await Deck.findOneAndUpdate(
-            {
-                guildId: old._server,
-                userId: old._player3,
-                name:
-                    old._player3Deck === 'Rogue'
-                        ? old._player3Rogue
-                        : old._player3Deck,
-                ...(deckList3 ? { deckList: deckList3 } : {}),
-            },
-            {},
-            { upsert: true, new: true }
-        );
-
-        const deck4: IDeck = await Deck.findOneAndUpdate(
-            {
-                guildId: old._server,
-                userId: old._player4,
-                name:
-                    old._player4Deck === 'Rogue'
-                        ? old._player4Rogue
-                        : old._player4Deck,
-                ...(deckList4 ? { deckList: deckList4 } : {}),
-            },
-            {},
-            { upsert: true, new: true }
-        );
-
-        const match = new Match({
-            guildId: old._server,
-            season: season._id,
-            confirmedAt: (old._id as Types.ObjectId).getTimestamp(),
-            winnerUserId: old._player1,
-            players: [
-                {
-                    userId: old._player1,
-                    confirmed: old._player1Confirmed === 'Y',
-                    deck: deck1._id,
-                },
-                {
-                    userId: old._player2,
-                    confirmed: old._player2Confirmed === 'Y',
-                    deck: deck2._id,
-                },
-                {
-                    userId: old._player3,
-                    confirmed: old._player3Confirmed === 'Y',
-                    deck: deck3._id,
-                },
-                {
-                    userId: old._player4,
-                    confirmed: old._player4Confirmed === 'Y',
-                    deck: deck4._id,
-                },
-            ],
-        });
-
-        match._id = old._id as Types.ObjectId;
-
-        await match.save();
-    }
-
-    for (const old of oldUsers) {
-        let currentDeck: IDeck | undefined = undefined;
-
-        if (old._currentDeck !== 'None') {
-            currentDeck =
-                (await Deck.findOne(
-                    {
-                        guildId: old._server,
-                        userId: old._mentionValue,
-                        name: old._currentDeck.replace(/\\s\| Rogue$/, ''),
-                    },
-                    {},
-                    { upsert: true, new: true }
-                )) ?? undefined;
-        }
-
-        await Profile.create({
-            guildId: old._server,
-            userId: old._mentionValue,
-            currentDeck: currentDeck?._id,
-        });
-    }
-
-    await interaction.editReply({
-        content: 'The data has been migrated.',
-    });
-}
 
 async function handleUpdate(
     interaction: ChatInputCommandInteraction,

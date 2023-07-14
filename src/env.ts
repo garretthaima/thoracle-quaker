@@ -20,7 +20,3 @@ if (!ADMIN_USER_IDS)
 export const DATABASE_URI = process.env.DATABASE_URI!;
 if (!DATABASE_URI)
     throw new Error('Missing `DATABASE_URI` environment variable.');
-
-export const MIGRATION_DATABASE_URI = process.env.MIGRATION_DATABASE_URI!;
-if (!MIGRATION_DATABASE_URI)
-    throw new Error('Missing `MIGRATION_DATABASE_URI` environment variable.');
