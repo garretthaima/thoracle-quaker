@@ -201,7 +201,7 @@ export async function handleCancelMatch(
         ? client.channels.cache.get(match.disputeThreadId)
         : undefined;
 
-    await disputeChannel?.delete();
+    await disputeChannel?.delete().catch(() => null);
 
     await interaction.reply({
         content: 'The match has been cancelled.',

@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { client } from '..';
 import { Deck, IDeck } from '../database/Deck';
 import { IMatch, Match } from '../database/Match';
 import { ISeason, Season } from '../database/Season';
@@ -266,6 +267,20 @@ async function handleDelete(
     }
 
     await match.deleteOne();
+
+    const channel = match.channelId
+        ? client.channels.cache.get(match.channelId)
+        : undefined;
+
+    if (channel?.isTextBased() && match.messageId) {
+        channel.messages.delete(match.messageId).catch(() => null);
+    }
+
+    const disputeChannel = match.disputeThreadId
+        ? client.channels.cache.get(match.disputeThreadId)
+        : undefined;
+
+    await disputeChannel?.delete().catch(() => null);
 
     await interaction.reply({
         content: 'That match has been deleted.',
