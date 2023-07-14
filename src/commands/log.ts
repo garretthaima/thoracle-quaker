@@ -7,6 +7,7 @@ import {
     MessageActionRowComponentBuilder,
     userMention,
 } from 'discord.js';
+import { Types } from 'mongoose';
 import { Deck, IDeck } from '../database/Deck';
 import { Match } from '../database/Match';
 import { fetchProfile } from '../database/Profile';
@@ -77,11 +78,16 @@ export = <Command>{
         );
         const decks = await Promise.all(deckPromises);
 
+        const matchId = new Types.ObjectId();
+
         const embed = new EmbedBuilder()
             .setTitle('Match Confirmation')
             .setDescription(
                 'Click below to confirm whether or not the match between these players is correct.'
             )
+            .setFooter({
+                text: `Match Id: (${matchId.toString()})`,
+            })
             .setColor('Blue');
 
         const playerText = profiles
@@ -132,7 +138,7 @@ export = <Command>{
 
         const message = await interaction.fetchReply();
 
-        await Match.create({
+        const match = new Match({
             guildId: interaction.guildId!,
             channelId: interaction.channelId,
             messageId: message.id,
@@ -143,5 +149,8 @@ export = <Command>{
                 deck: profile.currentDeck,
             })),
         });
+
+        match._id = matchId;
+        await match.save();
     },
 };
