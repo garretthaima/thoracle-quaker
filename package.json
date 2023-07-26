@@ -19,7 +19,7 @@
     "dependencies": {
         "discord.js": "^14.11.0",
         "dotenv": "^16.0.3",
-        "mongoose": "^7.1.1",
+        "mongoose": "^7.3.3",
         "source-map-support": "^0.5.21"
     }
 }
