@@ -99,7 +99,8 @@ export = <Command>{
             const config = await fetchConfig(interaction.guildId!);
 
             const points =
-                seasonWins * config.pointsGained - losses * config.pointsLost;
+                seasonWins * config.pointsGained -
+                seasonLosses * config.pointsLost;
 
             const pointsText = `You have ${config.basePoints + points} points.`;
 
