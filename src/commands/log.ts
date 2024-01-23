@@ -33,7 +33,7 @@ const command = newCommand()
         option
             .setName('player-3')
             .setDescription('Third player other than winner.')
-            .setRequired(true)
+            .setRequired(false)
     );
 
 export = <Command>{
